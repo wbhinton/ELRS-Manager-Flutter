@@ -8,13 +8,12 @@ part of 'target_definition.dart';
 
 _TargetDefinition _$TargetDefinitionFromJson(Map<String, dynamic> json) =>
     _TargetDefinition(
-      firmware: json['firmware'] as String,
-      name: json['name'] as String,
       vendor: json['vendor'] as String,
-      mcu: json['mcu'] as String,
-      productName: json['product_name'] as String?,
-      luaName: json['lua_name'] as String?,
-      uploadMethods:
+      name: json['name'] as String,
+      productCode: json['product_code'] as String?,
+      firmware: json['firmware'] as String?,
+      config: json['config'] as Map<String, dynamic>? ?? const {},
+      upload_methods:
           (json['upload_methods'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -24,18 +23,15 @@ _TargetDefinition _$TargetDefinitionFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      defines: json['defines'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$TargetDefinitionToJson(_TargetDefinition instance) =>
     <String, dynamic>{
-      'firmware': instance.firmware,
-      'name': instance.name,
       'vendor': instance.vendor,
-      'mcu': instance.mcu,
-      'product_name': instance.productName,
-      'lua_name': instance.luaName,
-      'upload_methods': instance.uploadMethods,
+      'name': instance.name,
+      'product_code': instance.productCode,
+      'firmware': instance.firmware,
+      'config': instance.config,
+      'upload_methods': instance.upload_methods,
       'options': instance.options,
-      'defines': instance.defines,
     };

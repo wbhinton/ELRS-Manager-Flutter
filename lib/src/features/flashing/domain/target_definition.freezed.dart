@@ -15,16 +15,15 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TargetDefinition {
 
-/// Unique identifier for the firmware target (e.g., "HappyModel_ES24TX_2400_TX")
- String get firmware;/// Human-readble name (e.g., "HappyModel ES24TX 2.4GHz TX")
- String get name;/// Manufacturer/Vendor name (e.g., "HappyModel")
- String get vendor;/// Microcontroller unit (e.g., "ESP32", "ESP8285", "STM32")
- String get mcu;/// Product name used for identification
-@JsonKey(name: 'product_name') String? get productName;/// Short name used in Lua scripts
-@JsonKey(name: 'lua_name') String? get luaName;/// List of supported upload methods (e.g., "wifi", "uart", "betaflight_passthrough")
-@JsonKey(name: 'upload_methods') List<String> get uploadMethods;/// List of build options/flags
- List<String> get options;/// Key-value pairs for pre-processor defines
- Map<String, dynamic> get defines;
+/// Manufacturer/Vendor name (e.g., "HappyModel")
+ String get vendor;/// Human-readble name (e.g., "HappyModel ES24TX 2.4GHz TX")
+ String get name;/// Product code used for identification
+@JsonKey(name: 'product_code') String? get productCode;/// Firmware target identifier
+/// Note: This can be a String or nested object in some cases, 
+/// but for now we map it as a String if it exists.
+ String? get firmware;/// Configuration map containing 'serial_rx', 'serial_tx', etc.
+ Map<String, dynamic> get config;// Keeping prior fields that might be useful, but making them optional/default to avoid breakages if not present
+ List<String> get upload_methods; List<String> get options;
 /// Create a copy of TargetDefinition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,16 +36,16 @@ $TargetDefinitionCopyWith<TargetDefinition> get copyWith => _$TargetDefinitionCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TargetDefinition&&(identical(other.firmware, firmware) || other.firmware == firmware)&&(identical(other.name, name) || other.name == name)&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.mcu, mcu) || other.mcu == mcu)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.luaName, luaName) || other.luaName == luaName)&&const DeepCollectionEquality().equals(other.uploadMethods, uploadMethods)&&const DeepCollectionEquality().equals(other.options, options)&&const DeepCollectionEquality().equals(other.defines, defines));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TargetDefinition&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.name, name) || other.name == name)&&(identical(other.productCode, productCode) || other.productCode == productCode)&&(identical(other.firmware, firmware) || other.firmware == firmware)&&const DeepCollectionEquality().equals(other.config, config)&&const DeepCollectionEquality().equals(other.upload_methods, upload_methods)&&const DeepCollectionEquality().equals(other.options, options));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,firmware,name,vendor,mcu,productName,luaName,const DeepCollectionEquality().hash(uploadMethods),const DeepCollectionEquality().hash(options),const DeepCollectionEquality().hash(defines));
+int get hashCode => Object.hash(runtimeType,vendor,name,productCode,firmware,const DeepCollectionEquality().hash(config),const DeepCollectionEquality().hash(upload_methods),const DeepCollectionEquality().hash(options));
 
 @override
 String toString() {
-  return 'TargetDefinition(firmware: $firmware, name: $name, vendor: $vendor, mcu: $mcu, productName: $productName, luaName: $luaName, uploadMethods: $uploadMethods, options: $options, defines: $defines)';
+  return 'TargetDefinition(vendor: $vendor, name: $name, productCode: $productCode, firmware: $firmware, config: $config, upload_methods: $upload_methods, options: $options)';
 }
 
 
@@ -57,7 +56,7 @@ abstract mixin class $TargetDefinitionCopyWith<$Res>  {
   factory $TargetDefinitionCopyWith(TargetDefinition value, $Res Function(TargetDefinition) _then) = _$TargetDefinitionCopyWithImpl;
 @useResult
 $Res call({
- String firmware, String name, String vendor, String mcu,@JsonKey(name: 'product_name') String? productName,@JsonKey(name: 'lua_name') String? luaName,@JsonKey(name: 'upload_methods') List<String> uploadMethods, List<String> options, Map<String, dynamic> defines
+ String vendor, String name,@JsonKey(name: 'product_code') String? productCode, String? firmware, Map<String, dynamic> config, List<String> upload_methods, List<String> options
 });
 
 
@@ -74,18 +73,16 @@ class _$TargetDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of TargetDefinition
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? firmware = null,Object? name = null,Object? vendor = null,Object? mcu = null,Object? productName = freezed,Object? luaName = freezed,Object? uploadMethods = null,Object? options = null,Object? defines = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? vendor = null,Object? name = null,Object? productCode = freezed,Object? firmware = freezed,Object? config = null,Object? upload_methods = null,Object? options = null,}) {
   return _then(_self.copyWith(
-firmware: null == firmware ? _self.firmware : firmware // ignore: cast_nullable_to_non_nullable
+vendor: null == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,vendor: null == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
-as String,mcu: null == mcu ? _self.mcu : mcu // ignore: cast_nullable_to_non_nullable
-as String,productName: freezed == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
-as String?,luaName: freezed == luaName ? _self.luaName : luaName // ignore: cast_nullable_to_non_nullable
-as String?,uploadMethods: null == uploadMethods ? _self.uploadMethods : uploadMethods // ignore: cast_nullable_to_non_nullable
+as String,productCode: freezed == productCode ? _self.productCode : productCode // ignore: cast_nullable_to_non_nullable
+as String?,firmware: freezed == firmware ? _self.firmware : firmware // ignore: cast_nullable_to_non_nullable
+as String?,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,upload_methods: null == upload_methods ? _self.upload_methods : upload_methods // ignore: cast_nullable_to_non_nullable
 as List<String>,options: null == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
-as List<String>,defines: null == defines ? _self.defines : defines // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,
+as List<String>,
   ));
 }
 
@@ -170,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String firmware,  String name,  String vendor,  String mcu, @JsonKey(name: 'product_name')  String? productName, @JsonKey(name: 'lua_name')  String? luaName, @JsonKey(name: 'upload_methods')  List<String> uploadMethods,  List<String> options,  Map<String, dynamic> defines)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String vendor,  String name, @JsonKey(name: 'product_code')  String? productCode,  String? firmware,  Map<String, dynamic> config,  List<String> upload_methods,  List<String> options)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TargetDefinition() when $default != null:
-return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productName,_that.luaName,_that.uploadMethods,_that.options,_that.defines);case _:
+return $default(_that.vendor,_that.name,_that.productCode,_that.firmware,_that.config,_that.upload_methods,_that.options);case _:
   return orElse();
 
 }
@@ -191,10 +188,10 @@ return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productNa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String firmware,  String name,  String vendor,  String mcu, @JsonKey(name: 'product_name')  String? productName, @JsonKey(name: 'lua_name')  String? luaName, @JsonKey(name: 'upload_methods')  List<String> uploadMethods,  List<String> options,  Map<String, dynamic> defines)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String vendor,  String name, @JsonKey(name: 'product_code')  String? productCode,  String? firmware,  Map<String, dynamic> config,  List<String> upload_methods,  List<String> options)  $default,) {final _that = this;
 switch (_that) {
 case _TargetDefinition():
-return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productName,_that.luaName,_that.uploadMethods,_that.options,_that.defines);case _:
+return $default(_that.vendor,_that.name,_that.productCode,_that.firmware,_that.config,_that.upload_methods,_that.options);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +208,10 @@ return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productNa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String firmware,  String name,  String vendor,  String mcu, @JsonKey(name: 'product_name')  String? productName, @JsonKey(name: 'lua_name')  String? luaName, @JsonKey(name: 'upload_methods')  List<String> uploadMethods,  List<String> options,  Map<String, dynamic> defines)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String vendor,  String name, @JsonKey(name: 'product_code')  String? productCode,  String? firmware,  Map<String, dynamic> config,  List<String> upload_methods,  List<String> options)?  $default,) {final _that = this;
 switch (_that) {
 case _TargetDefinition() when $default != null:
-return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productName,_that.luaName,_that.uploadMethods,_that.options,_that.defines);case _:
+return $default(_that.vendor,_that.name,_that.productCode,_that.firmware,_that.config,_that.upload_methods,_that.options);case _:
   return null;
 
 }
@@ -226,46 +223,42 @@ return $default(_that.firmware,_that.name,_that.vendor,_that.mcu,_that.productNa
 @JsonSerializable()
 
 class _TargetDefinition implements TargetDefinition {
-  const _TargetDefinition({required this.firmware, required this.name, required this.vendor, required this.mcu, @JsonKey(name: 'product_name') this.productName, @JsonKey(name: 'lua_name') this.luaName, @JsonKey(name: 'upload_methods') final  List<String> uploadMethods = const [], final  List<String> options = const [], final  Map<String, dynamic> defines = const {}}): _uploadMethods = uploadMethods,_options = options,_defines = defines;
+  const _TargetDefinition({required this.vendor, required this.name, @JsonKey(name: 'product_code') this.productCode, this.firmware, final  Map<String, dynamic> config = const {}, final  List<String> upload_methods = const [], final  List<String> options = const []}): _config = config,_upload_methods = upload_methods,_options = options;
   factory _TargetDefinition.fromJson(Map<String, dynamic> json) => _$TargetDefinitionFromJson(json);
 
-/// Unique identifier for the firmware target (e.g., "HappyModel_ES24TX_2400_TX")
-@override final  String firmware;
-/// Human-readble name (e.g., "HappyModel ES24TX 2.4GHz TX")
-@override final  String name;
 /// Manufacturer/Vendor name (e.g., "HappyModel")
 @override final  String vendor;
-/// Microcontroller unit (e.g., "ESP32", "ESP8285", "STM32")
-@override final  String mcu;
-/// Product name used for identification
-@override@JsonKey(name: 'product_name') final  String? productName;
-/// Short name used in Lua scripts
-@override@JsonKey(name: 'lua_name') final  String? luaName;
-/// List of supported upload methods (e.g., "wifi", "uart", "betaflight_passthrough")
- final  List<String> _uploadMethods;
-/// List of supported upload methods (e.g., "wifi", "uart", "betaflight_passthrough")
-@override@JsonKey(name: 'upload_methods') List<String> get uploadMethods {
-  if (_uploadMethods is EqualUnmodifiableListView) return _uploadMethods;
+/// Human-readble name (e.g., "HappyModel ES24TX 2.4GHz TX")
+@override final  String name;
+/// Product code used for identification
+@override@JsonKey(name: 'product_code') final  String? productCode;
+/// Firmware target identifier
+/// Note: This can be a String or nested object in some cases, 
+/// but for now we map it as a String if it exists.
+@override final  String? firmware;
+/// Configuration map containing 'serial_rx', 'serial_tx', etc.
+ final  Map<String, dynamic> _config;
+/// Configuration map containing 'serial_rx', 'serial_tx', etc.
+@override@JsonKey() Map<String, dynamic> get config {
+  if (_config is EqualUnmodifiableMapView) return _config;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_uploadMethods);
+  return EqualUnmodifiableMapView(_config);
 }
 
-/// List of build options/flags
+// Keeping prior fields that might be useful, but making them optional/default to avoid breakages if not present
+ final  List<String> _upload_methods;
+// Keeping prior fields that might be useful, but making them optional/default to avoid breakages if not present
+@override@JsonKey() List<String> get upload_methods {
+  if (_upload_methods is EqualUnmodifiableListView) return _upload_methods;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_upload_methods);
+}
+
  final  List<String> _options;
-/// List of build options/flags
 @override@JsonKey() List<String> get options {
   if (_options is EqualUnmodifiableListView) return _options;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_options);
-}
-
-/// Key-value pairs for pre-processor defines
- final  Map<String, dynamic> _defines;
-/// Key-value pairs for pre-processor defines
-@override@JsonKey() Map<String, dynamic> get defines {
-  if (_defines is EqualUnmodifiableMapView) return _defines;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_defines);
 }
 
 
@@ -282,16 +275,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TargetDefinition&&(identical(other.firmware, firmware) || other.firmware == firmware)&&(identical(other.name, name) || other.name == name)&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.mcu, mcu) || other.mcu == mcu)&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.luaName, luaName) || other.luaName == luaName)&&const DeepCollectionEquality().equals(other._uploadMethods, _uploadMethods)&&const DeepCollectionEquality().equals(other._options, _options)&&const DeepCollectionEquality().equals(other._defines, _defines));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TargetDefinition&&(identical(other.vendor, vendor) || other.vendor == vendor)&&(identical(other.name, name) || other.name == name)&&(identical(other.productCode, productCode) || other.productCode == productCode)&&(identical(other.firmware, firmware) || other.firmware == firmware)&&const DeepCollectionEquality().equals(other._config, _config)&&const DeepCollectionEquality().equals(other._upload_methods, _upload_methods)&&const DeepCollectionEquality().equals(other._options, _options));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,firmware,name,vendor,mcu,productName,luaName,const DeepCollectionEquality().hash(_uploadMethods),const DeepCollectionEquality().hash(_options),const DeepCollectionEquality().hash(_defines));
+int get hashCode => Object.hash(runtimeType,vendor,name,productCode,firmware,const DeepCollectionEquality().hash(_config),const DeepCollectionEquality().hash(_upload_methods),const DeepCollectionEquality().hash(_options));
 
 @override
 String toString() {
-  return 'TargetDefinition(firmware: $firmware, name: $name, vendor: $vendor, mcu: $mcu, productName: $productName, luaName: $luaName, uploadMethods: $uploadMethods, options: $options, defines: $defines)';
+  return 'TargetDefinition(vendor: $vendor, name: $name, productCode: $productCode, firmware: $firmware, config: $config, upload_methods: $upload_methods, options: $options)';
 }
 
 
@@ -302,7 +295,7 @@ abstract mixin class _$TargetDefinitionCopyWith<$Res> implements $TargetDefiniti
   factory _$TargetDefinitionCopyWith(_TargetDefinition value, $Res Function(_TargetDefinition) _then) = __$TargetDefinitionCopyWithImpl;
 @override @useResult
 $Res call({
- String firmware, String name, String vendor, String mcu,@JsonKey(name: 'product_name') String? productName,@JsonKey(name: 'lua_name') String? luaName,@JsonKey(name: 'upload_methods') List<String> uploadMethods, List<String> options, Map<String, dynamic> defines
+ String vendor, String name,@JsonKey(name: 'product_code') String? productCode, String? firmware, Map<String, dynamic> config, List<String> upload_methods, List<String> options
 });
 
 
@@ -319,18 +312,16 @@ class __$TargetDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of TargetDefinition
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? firmware = null,Object? name = null,Object? vendor = null,Object? mcu = null,Object? productName = freezed,Object? luaName = freezed,Object? uploadMethods = null,Object? options = null,Object? defines = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? vendor = null,Object? name = null,Object? productCode = freezed,Object? firmware = freezed,Object? config = null,Object? upload_methods = null,Object? options = null,}) {
   return _then(_TargetDefinition(
-firmware: null == firmware ? _self.firmware : firmware // ignore: cast_nullable_to_non_nullable
+vendor: null == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,vendor: null == vendor ? _self.vendor : vendor // ignore: cast_nullable_to_non_nullable
-as String,mcu: null == mcu ? _self.mcu : mcu // ignore: cast_nullable_to_non_nullable
-as String,productName: freezed == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
-as String?,luaName: freezed == luaName ? _self.luaName : luaName // ignore: cast_nullable_to_non_nullable
-as String?,uploadMethods: null == uploadMethods ? _self._uploadMethods : uploadMethods // ignore: cast_nullable_to_non_nullable
+as String,productCode: freezed == productCode ? _self.productCode : productCode // ignore: cast_nullable_to_non_nullable
+as String?,firmware: freezed == firmware ? _self.firmware : firmware // ignore: cast_nullable_to_non_nullable
+as String?,config: null == config ? _self._config : config // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,upload_methods: null == upload_methods ? _self._upload_methods : upload_methods // ignore: cast_nullable_to_non_nullable
 as List<String>,options: null == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
-as List<String>,defines: null == defines ? _self._defines : defines // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,
+as List<String>,
   ));
 }
 
