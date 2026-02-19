@@ -57,12 +57,8 @@ class ConnectionStatusBadge extends ConsumerWidget {
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.0),
         child: Chip(
-          avatar: SizedBox(
-            width: 16, 
-            height: 16, 
-            child: CircularProgressIndicator(strokeWidth: 2)
-          ),
-          label: Text('Initializing...'),
+          avatar: Icon(Icons.wifi_find, size: 16, color: Colors.grey),
+          label: Text('Scanning...', style: TextStyle(color: Colors.grey)),
         ),
       ),
       error: (err, _) => const SizedBox.shrink(),

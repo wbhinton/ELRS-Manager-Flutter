@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends HookConsumerWidget {
@@ -37,6 +38,37 @@ class SettingsScreen extends HookConsumerWidget {
                 DropdownMenuItem(value: 1, child: Text('EU (868MHz)')),
                 DropdownMenuItem(value: 2, child: Text('ISM (2.4GHz)')),
                 DropdownMenuItem(value: 3, child: Text('AU (915MHz)')),
+              ],
+            ),
+          ),
+          
+          ListTile(
+            title: const Text('Manage Cached Firmware'),
+            subtitle: const Text('Download or delete offline firmware'),
+            leading: const Icon(Icons.sd_storage),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () => context.push('/firmware_manager'),
+          ),
+
+          ListTile(
+            title: const Text('Max Cached Versions'),
+            subtitle: Text('${state.maxCachedVersions} versions'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  onPressed: state.maxCachedVersions > 1 
+                      ? () => controller.setMaxCachedVersions(state.maxCachedVersions - 1)
+                      : null,
+                ),
+                Text('${state.maxCachedVersions}', style: const TextStyle(fontSize: 18)),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: state.maxCachedVersions < 10
+                      ? () => controller.setMaxCachedVersions(state.maxCachedVersions + 1)
+                      : null,
+                ),
               ],
             ),
           ),

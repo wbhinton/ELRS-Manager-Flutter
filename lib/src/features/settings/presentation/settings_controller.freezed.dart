@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 mixin _$SettingsState {
 
  bool get developerMode; bool get forceMobileData; int get defaultRegulatoryDomain;// 0: FCC, 1: EU, etc.
- String get appVersion;
+ int get maxCachedVersions; String get appVersion;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,appVersion);
+int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,maxCachedVersions,appVersion);
 
 @override
 String toString() {
-  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, appVersion: $appVersion)';
+  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, maxCachedVersions: $maxCachedVersions, appVersion: $appVersion)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String appVersion
+ bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, int maxCachedVersions, String appVersion
 });
 
 
@@ -63,11 +63,12 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? appVersion = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? maxCachedVersions = null,Object? appVersion = null,}) {
   return _then(_self.copyWith(
 developerMode: null == developerMode ? _self.developerMode : developerMode // ignore: cast_nullable_to_non_nullable
 as bool,forceMobileData: null == forceMobileData ? _self.forceMobileData : forceMobileData // ignore: cast_nullable_to_non_nullable
 as bool,defaultRegulatoryDomain: null == defaultRegulatoryDomain ? _self.defaultRegulatoryDomain : defaultRegulatoryDomain // ignore: cast_nullable_to_non_nullable
+as int,maxCachedVersions: null == maxCachedVersions ? _self.maxCachedVersions : maxCachedVersions // ignore: cast_nullable_to_non_nullable
 as int,appVersion: null == appVersion ? _self.appVersion : appVersion // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String appVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  int maxCachedVersions,  String appVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.maxCachedVersions,_that.appVersion);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String appVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  int maxCachedVersions,  String appVersion)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.maxCachedVersions,_that.appVersion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +196,10 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String appVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  int maxCachedVersions,  String appVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.maxCachedVersions,_that.appVersion);case _:
   return null;
 
 }
@@ -210,13 +211,14 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 
 
 class _SettingsState implements SettingsState {
-  const _SettingsState({this.developerMode = false, this.forceMobileData = false, this.defaultRegulatoryDomain = 0, this.appVersion = 'Unknown'});
+  const _SettingsState({this.developerMode = false, this.forceMobileData = false, this.defaultRegulatoryDomain = 0, this.maxCachedVersions = 2, this.appVersion = 'Unknown'});
   
 
 @override@JsonKey() final  bool developerMode;
 @override@JsonKey() final  bool forceMobileData;
 @override@JsonKey() final  int defaultRegulatoryDomain;
 // 0: FCC, 1: EU, etc.
+@override@JsonKey() final  int maxCachedVersions;
 @override@JsonKey() final  String appVersion;
 
 /// Create a copy of SettingsState
@@ -229,16 +231,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,appVersion);
+int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,maxCachedVersions,appVersion);
 
 @override
 String toString() {
-  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, appVersion: $appVersion)';
+  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, maxCachedVersions: $maxCachedVersions, appVersion: $appVersion)';
 }
 
 
@@ -249,7 +251,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String appVersion
+ bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, int maxCachedVersions, String appVersion
 });
 
 
@@ -266,11 +268,12 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? appVersion = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? maxCachedVersions = null,Object? appVersion = null,}) {
   return _then(_SettingsState(
 developerMode: null == developerMode ? _self.developerMode : developerMode // ignore: cast_nullable_to_non_nullable
 as bool,forceMobileData: null == forceMobileData ? _self.forceMobileData : forceMobileData // ignore: cast_nullable_to_non_nullable
 as bool,defaultRegulatoryDomain: null == defaultRegulatoryDomain ? _self.defaultRegulatoryDomain : defaultRegulatoryDomain // ignore: cast_nullable_to_non_nullable
+as int,maxCachedVersions: null == maxCachedVersions ? _self.maxCachedVersions : maxCachedVersions // ignore: cast_nullable_to_non_nullable
 as int,appVersion: null == appVersion ? _self.appVersion : appVersion // ignore: cast_nullable_to_non_nullable
 as String,
   ));

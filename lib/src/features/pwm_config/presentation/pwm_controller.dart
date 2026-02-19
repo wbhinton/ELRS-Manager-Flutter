@@ -37,12 +37,10 @@ class PwmController extends _$PwmController {
       
       // Parse pwm_outputs.
       // E.g. {'pwm_outputs': [0, 1, 6, 7]}
-      if (config.containsKey('pwm_outputs')) {
-        final List<dynamic> raw = config['pwm_outputs'];
-        final List<int> outputs = raw.cast<int>();
+      if (config.pwmOutputs.isNotEmpty) {
         state = state.copyWith(
           status: PwmStatus.idle,
-          outputs: outputs,
+          outputs: config.pwmOutputs,
         );
       } else {
         // Fallback or empty if not present

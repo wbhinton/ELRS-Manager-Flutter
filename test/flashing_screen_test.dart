@@ -3,12 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:elrs_manager/src/features/flashing/presentation/flashing_screen.dart';
 import 'package:elrs_manager/src/core/theme/app_theme.dart';
-
+import 'package:elrs_manager/src/features/flashing/data/targets_provider.dart';
+import 'package:elrs_manager/src/features/flashing/data/releases_repository.dart';
 void main() {
   testWidgets('FlashingScreen loads with correct title and button', (WidgetTester tester) async {
     // Setup
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+           targetsProvider.overrideWith((ref) => Future.value([])),
+           releasesProvider.overrideWith((ref) => Future.value([])),
+        ],
         child: MaterialApp(
           theme: AppTheme.darkTheme,
           home: const FlashingScreen(),
@@ -29,6 +34,10 @@ void main() {
     // Setup
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          targetsProvider.overrideWith((ref) => Future.value([])),
+          releasesProvider.overrideWith((ref) => Future.value([])),
+        ],
         child: MaterialApp(
           theme: AppTheme.darkTheme,
           home: const FlashingScreen(),

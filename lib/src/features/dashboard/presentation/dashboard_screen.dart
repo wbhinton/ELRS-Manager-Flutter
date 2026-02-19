@@ -28,16 +28,22 @@ class DashboardScreen extends StatelessWidget {
             onTap: () => context.push('/flashing'),
           ),
           DashboardCard(
-            title: 'PWM Config',
-            icon: Icons.tune,
-            color: Colors.amber,
-            onTap: () => context.push('/pwm_config'),
+            title: 'Device Config',
+            icon: Icons.build,
+            color: Colors.blue,
+            onTap: () => context.push('/device_config'),
           ),
           DashboardCard(
             title: 'Backpack',
             icon: Icons.videocam,
             color: Colors.deepPurple,
             onTap: () => context.push('/backpack'),
+          ),
+          DashboardCard(
+            title: 'Firmware Manager',
+            icon: Icons.folder_special,
+            color: Colors.orange,
+            onTap: () => context.push('/firmware_manager'),
           ),
           DashboardCard(
             title: 'Settings',

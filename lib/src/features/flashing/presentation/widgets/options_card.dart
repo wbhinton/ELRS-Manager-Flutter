@@ -23,6 +23,9 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
     _wifiPasswordController = TextEditingController();
   }
 
+  bool _obscureBindPhrase = true;
+  bool _obscureWifiPassword = true;
+
   @override
   void dispose() {
     _bindPhraseController.dispose();
@@ -70,12 +73,20 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
             // Bind Phrase
             TextFormField(
               controller: _bindPhraseController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Binding Phrase',
                 helperText: 'Your unique binding phrase',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureBindPhrase ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _obscureBindPhrase = !_obscureBindPhrase;
+                    });
+                  },
+                ),
               ),
               onChanged: (value) => ref.read(flashingControllerProvider.notifier).setBindPhrase(value),
-              obscureText: true,
+              obscureText: _obscureBindPhrase,
             ),
              const SizedBox(height: 16),
 
@@ -90,9 +101,19 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
             // Wifi Password
             TextFormField(
               controller: _wifiPasswordController,
-              decoration: const InputDecoration(labelText: 'WiFi Password'),
+              decoration: InputDecoration(
+                labelText: 'WiFi Password',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureWifiPassword ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _obscureWifiPassword = !_obscureWifiPassword;
+                    });
+                  },
+                ),
+              ),
               onChanged: (value) => ref.read(flashingControllerProvider.notifier).setWifiPassword(value),
-              obscureText: true,
+              obscureText: _obscureWifiPassword,
             ),
             const SizedBox(height: 16),
 

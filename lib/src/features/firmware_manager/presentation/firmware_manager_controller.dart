@@ -1,0 +1,150 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../flashing/data/releases_repository.dart';
+import '../../settings/presentation/settings_controller.dart';
+import '../../../core/storage/firmware_cache_service.dart';
+import '../../flashing/data/firmware_repository.dart';
+
+part 'firmware_manager_controller.freezed.dart';
+part 'firmware_manager_controller.g.dart';
+
+@freezed
+abstract class FirmwareManagerState with _$FirmwareManagerState {
+  const factory FirmwareManagerState({
+    @Default([]) List<String> availableVersions,
+    @Default([]) List<String> cachedVersions,
+    @Default(false) bool isLoading,
+    @Default({}) Map<String, double> downloadProgress,
+    @Default(0.0) double cacheSizeMb,
+    String? errorMessage,
+  }) = _FirmwareManagerState;
+}
+
+@riverpod
+class FirmwareManagerController extends _$FirmwareManagerController {
+  @override
+  FirmwareManagerState build() {
+    return const FirmwareManagerState();
+  }
+
+  Future<void> load() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final cacheService = ref.read(firmwareCacheServiceProvider);
+      final releasesRepo = ref.read(releasesRepositoryProvider);
+      
+      // Fetch available versions (online)
+      // Note: This might fail if offline. We should handle that gracefully.
+      List<String> available = [];
+      try {
+        available = await releasesRepo.fetchVersions();
+      } catch (e) {
+        print('Failed to fetch available versions: $e');
+        // If offline, maybe we only show cached?
+      }
+
+      final cached = await cacheService.getCachedVersions();
+      final size = await cacheService.getCacheSizeMb();
+
+      state = state.copyWith(
+        isLoading: false,
+        availableVersions: available,
+        cachedVersions: cached,
+        cacheSizeMb: size,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: 'Error loading: $e');
+    }
+  }
+
+  Future<void> downloadVersion(String version) async {
+    final settings = ref.read(settingsControllerProvider);
+    final cacheService = ref.read(firmwareCacheServiceProvider);
+    final firmwareRepo = ref.read(firmwareRepositoryProvider);
+
+    // Check limit
+    if (state.cachedVersions.length >= settings.maxCachedVersions) {
+       // We can't easily show dialog from here, but we can set error message
+       state = state.copyWith(errorMessage: 'Cache limit reached (${settings.maxCachedVersions}). Delete a version first.');
+       return;
+    }
+
+    state = state.copyWith(
+      downloadProgress: {...state.downloadProgress, version: 0.0},
+      errorMessage: null,
+    );
+
+    try {
+      // 1. Fetch Hash
+      final hash = await firmwareRepo.fetchHashForVersion(version);
+
+      // 2. Download Firmware Zip
+      final firmwareBytes = await firmwareRepo.downloadArtifact(
+        hash, 
+        'firmware.zip',
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+             // 50% progress allocated to firmware zip
+             final progress = (received / total) * 0.5;
+             state = state.copyWith(
+               downloadProgress: {...state.downloadProgress, version: progress},
+             );
+          }
+        },
+      );
+
+      // 3. Download Hardware Zip (from fixed URL)
+      final hardwareBytes = await firmwareRepo.downloadHardwareZip(
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+             // 50% to 100% progress allocated to hardware zip
+             final progress = 0.5 + ((received / total) * 0.5);
+             state = state.copyWith(
+               downloadProgress: {...state.downloadProgress, version: progress},
+             );
+          }
+        },
+      );
+
+      // 4. Save both to cache
+      await cacheService.saveZip(version, firmwareBytes);
+      await cacheService.saveHardwareZip(version, hardwareBytes);
+      
+      // Refresh cache list
+      final cached = await cacheService.getCachedVersions();
+      final size = await cacheService.getCacheSizeMb();
+      
+      state = state.copyWith(
+        cachedVersions: cached,
+        cacheSizeMb: size,
+        downloadProgress: {...state.downloadProgress}..remove(version),
+      );
+
+    } catch (e) {
+      // Cleanup on failure
+      await cacheService.deleteCachedZip(version);
+      
+      state = state.copyWith(
+        errorMessage: 'Download failed: $e',
+        downloadProgress: {...state.downloadProgress}..remove(version),
+      );
+    }
+  }
+
+  Future<void> deleteVersion(String version) async {
+    try {
+      final cacheService = ref.read(firmwareCacheServiceProvider);
+      await cacheService.deleteCachedZip(version);
+      
+      final cached = await cacheService.getCachedVersions();
+      final size = await cacheService.getCacheSizeMb();
+      
+      state = state.copyWith(
+        cachedVersions: cached,
+        cacheSizeMb: size,
+      );
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Delete failed: $e');
+    }
+  }
+}

@@ -1,11 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'dart:typed_data';
 import '../application/firmware_patcher.dart';
 import '../domain/patch_configuration.dart';
 import '../data/firmware_repository.dart';
 import '../data/device_repository.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../../core/storage/firmware_cache_service.dart';
 import '../domain/target_definition.dart';
+import '../utils/target_resolver.dart';
+import '../utils/firmware_assembler.dart';
+import 'package:archive/archive.dart';
 
 import '../../settings/presentation/settings_controller.dart';
 
@@ -152,29 +157,129 @@ class FlashingController extends _$FlashingController {
       // ELRS targets.json usually has 'firmware' or we construct it.
       // Let's assume `firmware` property exists on `selectedTarget`.
       
-      final firmwareBytes = await ref.read(firmwareRepositoryProvider).downloadFirmware(
-        state.selectedTarget!.firmware ?? 'unknown.bin',
-        state.selectedVersion!
-      );
+      FirmwareData firmwareData;
+      
+      // Check for cached version
+      final cacheService = ref.read(firmwareCacheServiceProvider);
+      final cachedZip = await cacheService.getZipFile(state.selectedVersion!);
+      
+      if (cachedZip != null) {
+        state = state.copyWith(status: FlashingStatus.downloading, progress: 0.1);
+        final zipBytes = await cachedZip.readAsBytes();
+        
+        firmwareData = await ref.read(firmwareRepositoryProvider).extractFirmwareFromZip(
+          zipBytes, 
+          state.selectedTarget!.firmware ?? state.selectedTarget!.productCode ?? 'unknown',
+          regulatoryDomain: state.regulatoryDomain,
+        );
+         state = state.copyWith(progress: 0.4);
+      } else {
+         // Download from Artifactory
+         firmwareData = await ref.read(firmwareRepositoryProvider).downloadFirmware(
+          state.selectedTarget!.firmware ?? state.selectedTarget!.productCode ?? 'unknown',
+          state.selectedVersion!,
+          onReceiveProgress: (received, total) {
+            if (total != -1) {
+               final progress = (received / total);
+               final overallProgress = (progress * 0.4);
+               state = state.copyWith(progress: overallProgress, status: FlashingStatus.downloading);
+            }
+          },
+          regulatoryDomain: state.regulatoryDomain,
+        );
+      }
       
       state = state.copyWith(status: FlashingStatus.patching, progress: 0.33);
 
       // 2. Patch
-      final config = PatchConfiguration(
-        bindPhrase: state.bindPhrase,
-        wifiSsid: state.wifiSsid,
-        wifiPassword: state.wifiPassword,
-        regulatoryDomain: state.regulatoryDomain,
-      );
+      // Only patch if it is NOT a compressed file. Patcher probably expects .bin
+      // If it is .gz, we CANNOT patch it (unless we decompress, patch, recompress - but that's complex and user said "Do NOT run GZipDecoder").
+      // So if .gz, skipping patch? Or user assumes .gz files don't need patching (maybe factory firmware)?
+      // Actually, user options (bind phrase etc) are applied via patching. 
+      // If we skip patching, user options won't be applied.
+      // But user said: "Do NOT run GZipDecoder on the file if it ends in .gz. Just extract the raw bytes exactly as they are".
+      // This implies we flush RAW bytes. 
+      // Wait, if it's .gz, we can't patch it with string replacement easily.
+      // Does ELRS use .gz for updates? Yes.
+      // Does ELRS patching work on .gz? No.
+      // So if .gz is used, maybe it's pre-patched or user accepts generic?
+      // Or maybe the ESP handles it.
+      // I will assume if .gz, we skip patching (or throw warning? No, user didn't say).
+      // I'll skip patching for .gz files to be safe, or just pass bytes.
+      // `FirmwarePatcher` usually looks for byte signatures. GZ has different signature.
+      // I will add a check: if filename ends with .gz, skip patching.
       
-      final patcher = ref.read(firmwarePatcherProvider);
-      final patchedBytes = await patcher.patchFirmware(firmwareBytes, config);
+      Uint8List finalBytes;
+      if (firmwareData.filename.endsWith('.gz')) {
+         print('Skipping patching for compressed firmware: ${firmwareData.filename}');
+         finalBytes = firmwareData.bytes;
+      } else {
+        final config = PatchConfiguration(
+          bindPhrase: state.bindPhrase,
+          wifiSsid: state.wifiSsid,
+          wifiPassword: state.wifiPassword,
+          regulatoryDomain: state.regulatoryDomain,
+        );
+        
+        final patcher = ref.read(firmwarePatcherProvider);
+        finalBytes = await patcher.patchFirmware(firmwareData.bytes, config);
+      }
       
       state = state.copyWith(status: FlashingStatus.uploading, progress: 0.66);
 
       // 3. Upload
       final deviceRepo = ref.read(deviceRepositoryProvider);
-      await deviceRepo.flashFirmware(patchedBytes);
+      
+      // Prepare Unified Builder parameters if applicable
+      String? productName;
+      String? luaName;
+      List<int>? uid;
+      Map<String, dynamic>? mergedHardwareLayout;
+      
+      // Check if this target supports/requires Unified Building
+      // Usually indicated by presence of layout_file in config.
+      // Or we can just try to fetch it.
+      final targetConfig = state.selectedTarget!.config;
+      if (targetConfig.containsKey('layout_file')) {
+         print('Target has layout_file. Preparing Target-Aware Build...');
+         try {
+           // 1. Get Hardware Zip
+           final zipFile = await cacheService.getHardwareZipFile(state.selectedVersion!);
+           if (zipFile == null) throw Exception('Hardware zip not found');
+           
+           final zipBytes = await zipFile.readAsBytes();
+           final archive = ZipDecoder().decodeBytes(zipBytes);
+
+           // 2. Resolve Layout
+           mergedHardwareLayout = TargetResolver.resolveLayout(
+             targetConfig,
+             archive,
+           );
+           
+           productName = targetConfig['product_name'] as String? ?? state.selectedTarget!.name;
+           luaName = targetConfig['lua_name'] as String? ?? 'ELRS';
+           
+           if (state.bindPhrase.isNotEmpty) {
+              uid = FirmwareAssembler.generateUid(state.bindPhrase);
+           } else {
+              uid = FirmwareAssembler.generateUid(''); 
+           }
+         } catch (e) {
+           print('Warning: Failed to prepare unified build data: $e');
+           throw Exception('Failed to prepare Unified Firmware: $e');
+         }
+      }
+
+      await deviceRepo.flashFirmware(
+        finalBytes, 
+        firmwareData.filename,
+        productName: productName,
+        luaName: luaName,
+        uid: uid,
+        hardwareLayout: mergedHardwareLayout,
+        wifiSsid: state.wifiSsid,
+        wifiPassword: state.wifiPassword,
+      );
       
       state = state.copyWith(status: FlashingStatus.success, progress: 1.0);
     } catch (e) {

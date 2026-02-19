@@ -54,7 +54,7 @@ final class TargetsRepositoryProvider
   }
 }
 
-String _$targetsRepositoryHash() => r'3e4717c0c076de279f84dd61befcc4e330dc5d98';
+String _$targetsRepositoryHash() => r'4392919d01be62fa5c77ce96bb63a3b9dca835c7';
 
 @ProviderFor(targets)
 final targetsProvider = TargetsProvider._();

@@ -68,8 +68,12 @@ class BackpackController extends _$BackpackController {
       // In reality, flashing a backpack connected to a TX via the TX wifi might use a different endpoint or specific payload/header.
       // But we will follow instructions to call `deviceRepo.flashFirmware(bytes)`.
       
+      final sanitizedFilename = state.selectedTarget!
+          .replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_') + '.bin';
+
       await deviceRepo.flashFirmware(
         bytes, 
+        sanitizedFilename,
         onSendProgress: (sent, total) {
            // We could map this to 0.5 -> 1.0 progress
         }

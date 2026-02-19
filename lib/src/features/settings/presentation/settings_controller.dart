@@ -12,6 +12,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(false) bool developerMode,
     @Default(false) bool forceMobileData,
     @Default(0) int defaultRegulatoryDomain, // 0: FCC, 1: EU, etc.
+    @Default(2) int maxCachedVersions,
     @Default('Unknown') String appVersion,
   }) = _SettingsState;
 }
@@ -31,6 +32,7 @@ class SettingsController extends _$SettingsController {
       developerMode: prefs.getBool('developerMode') ?? false,
       forceMobileData: prefs.getBool('forceMobileData') ?? false,
       defaultRegulatoryDomain: prefs.getInt('defaultRegulatoryDomain') ?? 0,
+      maxCachedVersions: prefs.getInt('maxCachedVersions') ?? 2,
       appVersion: info.version,
     );
   }
@@ -52,5 +54,11 @@ class SettingsController extends _$SettingsController {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('defaultRegulatoryDomain', value);
     state = state.copyWith(defaultRegulatoryDomain: value);
+  }
+
+  Future<void> setMaxCachedVersions(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('maxCachedVersions', value);
+    state = state.copyWith(maxCachedVersions: value);
   }
 }

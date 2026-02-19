@@ -47,4 +47,4 @@ final class DeviceDioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$deviceDioHash() => r'2fdb7516e28ac3fe0158ddfb901ca3b5f793d188';
+String _$deviceDioHash() => r'0c1e519322abcb64219483722d439c41afaeadb4';

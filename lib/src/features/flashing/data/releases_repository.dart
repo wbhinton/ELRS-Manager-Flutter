@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/storage/firmware_cache_service.dart';
 
 part 'releases_repository.g.dart';
 
@@ -10,25 +11,48 @@ class ReleasesRepository {
 
   Future<List<String>> fetchVersions() async {
     try {
-      final response = await _dio.get('https://api.github.com/repos/ExpressLRS/ExpressLRS/releases');
-      final List<dynamic> data = response.data as List<dynamic>;
+      // Use Artifactory Index to ensure we only list versions we can actually download.
+      // Index URL: https://artifactory.expresslrs.org/ExpressLRS/index.json
+      final response = await _dio.get('https://artifactory.expresslrs.org/ExpressLRS/index.json');
       
-      return data
-          .map((e) => e['tag_name'] as String)
-          .where((tag) {
-            // Simple filtering for 3.x.x versions
-            // Remove 'v' prefix if present for parsing, though usually tags are "3.3.0" or "v3.3.0"
-            // ELRS tags are usually just "3.x.x" or "v3.x.x"
-            // We want >= 3.0.0
-            final cleanTag = tag.startsWith('v') ? tag.substring(1) : tag;
-            return cleanTag.startsWith('3.');
-          })
-          .toList();
+      // key = version string, value = hash
+      final Map<String, dynamic> tags = response.data['tags'];
+      
+      // Filter for versions >= 3.0.0 (including 4.x)
+      // Sort descending (newest first)
+      final versions = tags.keys.where((tag) {
+        final clean = tag.startsWith('v') ? tag.substring(1) : tag;
+        // Basic check: starts with digit and >= 3
+        if (clean.isEmpty) return false;
+        final major = int.tryParse(clean.split('.')[0]);
+        return major != null && major >= 3;
+      }).toList();
+      
+      // Sort using SemVer-ish logic
+      versions.sort((a, b) {
+         return _compareVersions(b, a); // Descending
+      });
+      
+      return versions;
     } catch (e) {
-      // Return a fallback list or rethrow. For now, empty list or throw.
-      // Re-throwing allows the UI to show error state.
        throw Exception('Failed to fetch releases: $e');
     }
+  }
+
+  int _compareVersions(String v1, String v2) {
+    // quick semver compare
+    final p1 = v1.startsWith('v') ? v1.substring(1) : v1;
+    final p2 = v2.startsWith('v') ? v2.substring(1) : v2;
+    
+    final parts1 = p1.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final parts2 = p2.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    
+    for (var i = 0; i < 3; i++) {
+      final n1 = i < parts1.length ? parts1[i] : 0;
+      final n2 = i < parts2.length ? parts2[i] : 0;
+      if (n1 != n2) return n1.compareTo(n2);
+    }
+    return 0;
   }
 }
 
@@ -40,5 +64,16 @@ ReleasesRepository releasesRepository(Ref ref) {
 @riverpod
 Future<List<String>> releases(Ref ref) async {
   final repo = ref.watch(releasesRepositoryProvider);
-  return repo.fetchVersions();
+  try {
+    return await repo.fetchVersions();
+  } catch (e) {
+    print('Failed to fetch releases ($e). Checking cache...');
+    final cacheService = ref.read(firmwareCacheServiceProvider);
+    final cached = await cacheService.getCachedVersions();
+    
+    if (cached.isEmpty) {
+      throw Exception('No versions available (Offline & Cache Empty). Details: $e');
+    }
+    return cached;
+  }
 }

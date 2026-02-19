@@ -58,7 +58,7 @@ void main() {
       );
 
       expect(
-        () async => await deviceRepository.flashFirmware(firmwareData),
+        () async => await deviceRepository.flashFirmware(firmwareData, 'firmware.bin'),
         throwsA(isA<Exception>()),
       );
     });

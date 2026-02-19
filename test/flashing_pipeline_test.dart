@@ -10,24 +10,30 @@ import 'package:elrs_manager/src/features/flashing/presentation/flashing_control
 import 'package:elrs_manager/src/features/flashing/domain/target_definition.dart';
 import 'package:elrs_manager/src/features/flashing/domain/patch_configuration.dart';
 import 'package:elrs_manager/src/core/storage/secure_storage_service.dart';
+import 'package:elrs_manager/src/core/storage/firmware_cache_service.dart';
 
 // 1. Define Mocks
 class MockFirmwareRepository extends Mock implements FirmwareRepository {}
 class MockDeviceRepository extends Mock implements DeviceRepository {}
 class MockFirmwarePatcher extends Mock implements FirmwarePatcher {}
 class MockSecureStorageService extends Mock implements SecureStorageService {}
+class MockFirmwareCacheService extends Mock implements FirmwareCacheService {}
 
 void main() {
   late MockFirmwareRepository mockFirmwareRepo;
   late MockDeviceRepository mockDeviceRepo;
   late MockFirmwarePatcher mockPatcher;
   late MockSecureStorageService mockStorage;
+  late MockFirmwareCacheService mockCache;
 
   setUp(() {
     mockFirmwareRepo = MockFirmwareRepository();
     mockDeviceRepo = MockDeviceRepository();
     mockPatcher = MockFirmwarePatcher();
     mockStorage = MockSecureStorageService();
+    mockCache = MockFirmwareCacheService();
+    
+    when(() => mockCache.getZipFile(any())).thenAnswer((_) async => null);
     
     // Default stubs for storage to avoid errors during controller init/save
     when(() => mockStorage.loadOptions()).thenAnswer((_) async => {});
@@ -47,11 +53,16 @@ void main() {
     // 2. Success Scenario
     
     // Stubbing
-    when(() => mockFirmwareRepo.downloadFirmware(any(), any()))
-        .thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+    when(() => mockFirmwareRepo.downloadFirmware(
+      any(), 
+      any(), 
+      regulatoryDomain: any(named: 'regulatoryDomain'), 
+      onReceiveProgress: any(named: 'onReceiveProgress')
+    )).thenAnswer((_) async => FirmwareData(bytes: Uint8List.fromList([1, 2, 3]), filename: 'firmware.bin'));
+    
     when(() => mockPatcher.patchFirmware(any(), any()))
-        .thenAnswer((_) async => Uint8List.fromList([4, 5, 6])); // Async method? Check patchFirmware signature.
-    when(() => mockDeviceRepo.flashFirmware(any()))
+        .thenAnswer((_) async => Uint8List.fromList([4, 5, 6])); 
+    when(() => mockDeviceRepo.flashFirmware(any(), any()))
         .thenAnswer((_) async => Future.value());
 
     // Provider Override
@@ -61,6 +72,7 @@ void main() {
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
         secureStorageServiceProvider.overrideWith((ref) => mockStorage),
+        firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
       ],
     );
     addTearDown(container.dispose);
@@ -72,7 +84,8 @@ void main() {
     controller.selectTarget(const TargetDefinition(
       vendor: 'BetaFPV', 
       name: 'Nano RX', 
-      firmware: 'betafpv_nano_rx.bin'
+      firmware: 'betafpv_nano_rx.bin',
+      productCode: 'betafpv_nano_rx', // Add productCode
     ));
     controller.selectVersion('3.3.0');
     controller.setBindPhrase('my_secret_phrase');
@@ -81,12 +94,17 @@ void main() {
     await controller.flash();
 
     // Assert
-    verify(() => mockFirmwareRepo.downloadFirmware('betafpv_nano_rx.bin', '3.3.0')).called(1);
+    verify(() => mockFirmwareRepo.downloadFirmware(
+      any(), // 'betafpv_nano_rx.bin', 
+      any(), // '3.3.0',
+      regulatoryDomain: any(named: 'regulatoryDomain'),
+      onReceiveProgress: any(named: 'onReceiveProgress')
+    )).called(1);
     verify(() => mockPatcher.patchFirmware(
       any(that: isA<Uint8List>()), 
-      any(that: isA<PatchConfiguration>()) // could check specific config fields
+      any(that: isA<PatchConfiguration>()) 
     )).called(1);
-    verify(() => mockDeviceRepo.flashFirmware(any())).called(1);
+    verify(() => mockDeviceRepo.flashFirmware(any(), 'firmware.bin')).called(1);
 
     final state = container.read(flashingControllerProvider);
     expect(state.status, equals(FlashingStatus.success));
@@ -97,8 +115,12 @@ void main() {
     // 3. Error Scenario
     
     // Stubbing
-    when(() => mockFirmwareRepo.downloadFirmware(any(), any()))
-        .thenThrow(Exception('Network Error'));
+    when(() => mockFirmwareRepo.downloadFirmware(
+      any(), 
+      any(),
+      regulatoryDomain: any(named: 'regulatoryDomain'),
+      onReceiveProgress: any(named: 'onReceiveProgress')
+    )).thenThrow(Exception('Network Error'));
 
     // Provider Override
     final container = ProviderContainer(
@@ -107,22 +129,28 @@ void main() {
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
         secureStorageServiceProvider.overrideWith((ref) => mockStorage),
+        firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
       ],
     );
     addTearDown(container.dispose);
 
     // Act
     final controller = container.read(flashingControllerProvider.notifier);
-    controller.selectTarget(const TargetDefinition(vendor: 'V', name: 'N', firmware: 'f.bin'));
+    controller.selectTarget(const TargetDefinition(vendor: 'V', name: 'N', firmware: 'f.bin', productCode: 'f'));
     controller.selectVersion('3.3.0');
     controller.setBindPhrase('phrase');
 
     await controller.flash();
 
     // Assert
-    verify(() => mockFirmwareRepo.downloadFirmware(any(), any())).called(1);
+    verify(() => mockFirmwareRepo.downloadFirmware(
+      any(), 
+      any(),
+      regulatoryDomain: any(named: 'regulatoryDomain'),
+      onReceiveProgress: any(named: 'onReceiveProgress')
+    )).called(1);
     verifyNever(() => mockPatcher.patchFirmware(any(), any()));
-    verifyNever(() => mockDeviceRepo.flashFirmware(any()));
+    verifyNever(() => mockDeviceRepo.flashFirmware(any(), any()));
 
     final state = container.read(flashingControllerProvider);
     expect(state.status, equals(FlashingStatus.error));
