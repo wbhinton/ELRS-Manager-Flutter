@@ -58,6 +58,7 @@ class FirmwareAssembler {
       firmwareEnd = _findEndEsp8285(firmware);
     } else if (platform.startsWith('esp32')) {
       firmwareEnd = _findEndEsp32(firmware);
+      print('ESP32 FINAL TRIM: Original: ${firmware.length}, New: $firmwareEnd, Delta: ${firmware.length - firmwareEnd} bytes removed.');
     } else {
       // Fallback: previous logic or assume 2704 bytes config block at end if it's already a unified binary
       final configBlockSize = 128 + 16 + 512 + 2048; // 2704
@@ -214,37 +215,43 @@ class FirmwareAssembler {
     return (pos + 16) & ~15;
   }
 
-  /// Scans to find the end of the valid firmware data for ESP32.
+ /// Scans to find the end of the valid firmware data for ESP32.
   static int _findEndEsp32(Uint8List binary) {
     if (binary.length < 24) return binary.length;
+
+    // Official ELRS configure.js logic for ESP32
+    // Header starts at 0. 
+    final segmentCount = binary[1];
     
-    // Start magic byte search at offset 24
-    int pos = 24;
-    while (pos < binary.length) {
-      if (binary[pos] == 0xE9) {
-        break;
-      }
-      pos++; // Search for magic byte
-    }
-    
-    if (pos >= binary.length) return binary.length;
-    
-    final segmentCount = binary[pos + 1];
-    pos += 8;
-    
+    // Sanity check: ESP32 usually has 1-16 segments. 
+    if (segmentCount == 0 || segmentCount > 32) return binary.length;
+
+    int pos = 24; // Start of segments
+
     for (int i = 0; i < segmentCount; i++) {
-      if (pos + 8 > binary.length) break;
-      final size = binary[pos + 4] | 
-                   (binary[pos + 5] << 8) | 
-                   (binary[pos + 6] << 16) | 
+      if (pos + 8 > binary.length) return binary.length;
+
+      // Read 32-bit size (Little Endian)
+      final size = binary[pos + 4] |
+                   (binary[pos + 5] << 8) |
+                   (binary[pos + 6] << 16) |
                    (binary[pos + 7] << 24);
-      pos = ((pos + 16) & ~15) + 32; // Skip segment data + formula
-      // Actually the formula pos = ((pos + 16) & ~15) + 32 seems to be for something else?
-      // Step 2.2: Loop through segments: read 32-bit segment size at pos + 4.
-      // Apply formula: pos = ((pos + 16) & ~15) + 32.
-      // This implies we don't just add 'size', but use this formula.
+
+      // SANITY CHECK: If size is impossible, return original length
+      if (size > binary.length || size < 0 || pos + 8 + size > binary.length) {
+        return binary.length;
+      }
+
+      pos += 8 + size; // Header (8) + Data (size)
     }
-    
-    return pos;
+
+    // Official Alignment logic: 
+    // 1. Align to 16 bytes
+    // 2. Add 32 bytes 
+    int finalPos = (pos + 15) & ~15;
+    finalPos += 32;
+
+    // Safety: Never return an offset larger than the actual file
+    return finalPos > binary.length ? binary.length : finalPos;
   }
 }

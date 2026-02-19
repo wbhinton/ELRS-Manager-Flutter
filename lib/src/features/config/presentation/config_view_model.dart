@@ -4,6 +4,7 @@ import '../../../core/networking/connection_repository.dart';
 import '../../../core/networking/device_dio.dart';
 import '../../../core/networking/discovery_service.dart';
 import '../../../core/storage/secure_storage_service.dart';
+import '../../flashing/state/flashing_provider.dart';
 import '../domain/runtime_config_model.dart';
 import '../services/device_config_service.dart';
 
@@ -67,6 +68,10 @@ class ConfigViewModel extends _$ConfigViewModel {
   }
 
   Future<void> _performHeartbeat() async {
+    // Silence UI during Flash to prevent network contention
+    final isFlashing = ref.read(isFlashingProvider);
+    if (isFlashing) return;
+
     final service = ref.read(deviceConfigServiceProvider);
     
     // Priority: 1. Manual IP, 2. mDNS

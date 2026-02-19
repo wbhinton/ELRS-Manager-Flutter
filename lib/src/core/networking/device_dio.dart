@@ -13,8 +13,8 @@ Dio deviceDio(Ref ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 3),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
       headers: {
         'User-Agent': 'ELRSManager/1.0',
       },

@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -98,6 +98,7 @@ class DeviceRepository {
     String? wifiSsid,
     String? wifiPassword,
     String? platform,
+    bool force = false,
   }) async {
     try {
       Uint8List dataToUpload;
@@ -132,26 +133,13 @@ class DeviceRepository {
           dataToUpload = Uint8List.fromList(compressed);
           filenameToUpload += '.gz';
           print('Compressed Unified Size: ${dataToUpload.length} bytes');
-        } else if (platform.startsWith('esp32')) {
-          print('Skipping compression for ESP32 platform: $platform');
-          // No compression for ESP32
         } else {
-          // Default to GZip for other ESP platforms? 
-          // The request said: If platform.startsWith('esp32'), do not compress.
-          // Otherwise preserve working logic (which was GZip).
-          print('Defaulting to GZip compression for platform: $platform');
-          final compressed = GZipEncoder().encode(dataToUpload);
-          if (compressed != null) {
-            dataToUpload = Uint8List.fromList(compressed);
-            filenameToUpload += '.gz';
-          }
+          print('Skipping compression for platform: $platform');
         }
 
       } else {
         // Standard / Legacy Flow (used when not building Unified, or platform missing)
-        // Note: For legacy flow, we still might want to honor the platform-specific compression
-        // if platform is provided.
-        
+        // Note: For legacy flow, we skip compression for ESP32 and allow it for ESP8285
         if (platform != null && platform.startsWith('esp32')) {
           print('Legacy Flow: Skipping compression for ESP32 ($platform)');
           dataToUpload = firmwareData;
@@ -178,44 +166,51 @@ class DeviceRepository {
 
       // Construct URI from Dio's base URL
       final baseUrl = _dio.options.baseUrl;
-      final uri = Uri.parse(baseUrl.endsWith('/') ? '${baseUrl}update' : '$baseUrl/update');
+      var path = baseUrl.endsWith('/') ? '${baseUrl}update' : '$baseUrl/update';
+      if (force) {
+        path += '?force=1';
+      }
+      final uri = Uri.parse(path);
       
-      final request = http.MultipartRequest('POST', uri);
+      print('LOG: Attempting Raw OTA Update at URL: $uri');
 
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 10);
+      
+      final request = await client.postUrl(uri);
+      
       // Set headers
-      request.headers['X-FileSize'] = dataToUpload.length.toString();
+      request.contentLength = dataToUpload.length;
+      request.headers.set(HttpHeaders.contentTypeHeader, 'application/octet-stream');
+      request.headers.set('X-FileSize', dataToUpload.length.toString());
       
-      // Attach file
-      final multipartFile = http.MultipartFile.fromBytes(
-        'upload',
-        dataToUpload,
-        filename: filenameToUpload,
-        contentType: MediaType('application', 'octet-stream'),
-      );
-      
-      request.files.add(multipartFile);
+      // Write raw bytes directly
+      request.add(dataToUpload);
 
-      final targetIpValue = uri.host;
-      print('LOG: Attempting OTA Update at URL: http://$targetIpValue/update');
-      
-      final streamedResponse = await (_httpClient?.send(request) ?? request.send()).timeout(const Duration(seconds: 120));
-      final response = await http.Response.fromStream(streamedResponse);
+      // ESP32 SuperP needs a moment to prepare flash before receiving the binary.
+      print('LOG: Waiting 2 seconds for device to prepare...');
+      await Future.delayed(const Duration(seconds: 2));
+
+      final response = await request.close().timeout(const Duration(seconds: 120));
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      print('LOG: Device Response Body: $responseBody');
+
+      if (responseBody.contains('"status": "mismatch"') || responseBody.contains('"status":"mismatch"')) {
+        print('LOG: Target mismatch detected!');
+        throw Exception('MISMATCH: The firmware target does not match the device.');
+      }
 
       if (response.statusCode != 200) {
         print('LOG: OTA Update Failed! Status: ${response.statusCode}');
-        print('LOG: Device Error Response: ${response.body}');
-        throw Exception('Flashing failed with status: ${response.statusCode}. Body: ${response.body}');
+        throw Exception('Flashing failed with status: ${response.statusCode}. Body: $responseBody');
       }
       
-      print('Flash successful! Device response: ${response.body}');
+      print('Flash successful! Device response: $responseBody');
       
-      // Verify ELRS specific JSON response if possible (parse body)
-      // The response body is usually JSON string.
-      if (response.body.contains('"status": "ok"') || response.body.contains('"status":"ok"')) {
+      // Verify ELRS specific JSON response if possible
+      if (responseBody.contains('"status": "ok"') || responseBody.contains('"status":"ok"')) {
          // Success
-      } else if (response.body.contains('"msg"')) {
-         // Try to extract msg? Or just throw if status not ok?
-         // Assuming 200 OK means generic success for now, as parsing string manually is brittle.
       }
       
     } catch (e) {

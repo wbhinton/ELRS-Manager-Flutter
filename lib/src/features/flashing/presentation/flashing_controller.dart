@@ -14,6 +14,8 @@ import 'package:archive/archive.dart';
 
 import '../../settings/presentation/settings_controller.dart';
 
+import '../state/flashing_provider.dart';
+
 part 'flashing_controller.freezed.dart';
 part 'flashing_controller.g.dart';
 
@@ -24,6 +26,7 @@ enum FlashingStatus {
   uploading,
   success,
   error,
+  mismatch,
 }
 
 @freezed
@@ -124,7 +127,7 @@ class FlashingController extends _$FlashingController {
     );
   }
 
-  Future<void> flash() async {
+  Future<void> flash({bool force = false}) async {
     if (state.selectedTarget == null) {
       state = state.copyWith(errorMessage: 'Please select a target device.');
       return;
@@ -143,6 +146,9 @@ class FlashingController extends _$FlashingController {
       progress: 0.0,
       errorMessage: null,
     );
+    
+    // Silence UI heartbeat
+    ref.read(isFlashingProvider.notifier).setFlashing(true);
 
     try {
       // 1. Download
@@ -280,15 +286,28 @@ class FlashingController extends _$FlashingController {
         wifiSsid: state.wifiSsid,
         wifiPassword: state.wifiPassword,
         platform: state.selectedTarget!.platform,
+        force: force,
       );
       
+      ref.read(isFlashingProvider.notifier).setFlashing(false);
       state = state.copyWith(status: FlashingStatus.success, progress: 1.0);
     } catch (e) {
-      state = state.copyWith(
-        status: FlashingStatus.error,
-        errorMessage: e.toString(),
-        progress: 0.0,
-      );
+      ref.read(isFlashingProvider.notifier).setFlashing(false);
+      final errorMsg = e.toString();
+      
+      if (errorMsg.contains('MISMATCH')) {
+        state = state.copyWith(
+          status: FlashingStatus.mismatch,
+          errorMessage: errorMsg,
+          progress: 0.0,
+        );
+      } else {
+        state = state.copyWith(
+          status: FlashingStatus.error,
+          errorMessage: errorMsg,
+          progress: 0.0,
+        );
+      }
     }
   }
 
