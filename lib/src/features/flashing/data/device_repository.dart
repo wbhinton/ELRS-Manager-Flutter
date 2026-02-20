@@ -122,54 +122,40 @@ class DeviceRepository {
         if (!filenameToUpload.endsWith('.bin')) filenameToUpload += '.bin';
         
         print('Unified Firmware Built. Size: ${dataToUpload.length} bytes');
-        
-        // Conditional compression based on platform
-        if (platform == 'esp8285') {
-          print('Compressing unified firmware for ESP8285...');
-          final compressed = GZipEncoder().encode(dataToUpload);
-          if (compressed == null) {
-            throw Exception('Failed to compress unified firmware payload.');
-          }
-          dataToUpload = Uint8List.fromList(compressed);
-          filenameToUpload += '.gz';
-          print('Compressed Unified Size: ${dataToUpload.length} bytes');
-        } else {
-          print('Skipping compression for platform: $platform');
-        }
-
       } else {
-        // Standard / Legacy Flow (used when not building Unified, or platform missing)
-        // Note: For legacy flow, we skip compression for ESP32 and allow it for ESP8285
-        if (platform != null && platform.startsWith('esp32')) {
-          print('Legacy Flow: Skipping compression for ESP32 ($platform)');
-          dataToUpload = firmwareData;
-          filenameToUpload = filename.endsWith('.gz') ? filename.substring(0, filename.length - 3) : filename;
-        } else {
-          // Check if already compressed to avoid double compression
-          if (filename.endsWith('.gz')) {
-            print('Firmware already compressed: $filename');
-            dataToUpload = firmwareData;
-            filenameToUpload = filename;
-          } else {
-            print('Compressing firmware: $filename');
-            final compressed = GZipEncoder().encode(firmwareData);
-            if (compressed == null) {
-              throw Exception('Failed to compress firmware payload.');
-            }
-            dataToUpload = Uint8List.fromList(compressed);
-            filenameToUpload = '$filename.gz';
-            print('Original Size: ${firmwareData.length} bytes');
-            print('Compressed Size: ${dataToUpload.length} bytes');
-          }
-        }
+        dataToUpload = firmwareData;
+        filenameToUpload = filename;
       }
+
+      // Targeted Compression Logic (Task 3)
+      if (platform == 'esp8285') {
+        print('Compressing firmware for ESP8285...');
+        final compressed = GZipEncoder().encode(dataToUpload);
+        if (compressed == null) {
+          throw Exception('Failed to compress firmware payload.');
+        }
+        dataToUpload = Uint8List.fromList(compressed);
+        if (!filenameToUpload.endsWith('.gz')) filenameToUpload += '.gz';
+      } else if (platform != null && platform.startsWith('esp32')) {
+        print('Using raw bytes for ESP32 ($platform)');
+        if (filenameToUpload.endsWith('.gz')) {
+           filenameToUpload = filenameToUpload.substring(0, filenameToUpload.length - 3);
+        }
+      } else {
+        print('Skipping compression for platform: $platform');
+      }
+
+      int trimmingDelta = 0;
+      if (platform != null) {
+        final trimmedEnd = FirmwareAssembler.findFirmwareEnd(firmwareData, platform);
+        trimmingDelta = firmwareData.length - trimmedEnd;
+      }
+      print('Trimming Delta: $trimmingDelta');
+      print('Final Byte Count: ${dataToUpload.length}');
 
       // Construct URI from Dio's base URL
       final baseUrl = _dio.options.baseUrl;
       var path = baseUrl.endsWith('/') ? '${baseUrl}update' : '$baseUrl/update';
-      if (force) {
-        path += '?force=1';
-      }
       final uri = Uri.parse(path);
       
       print('LOG: Attempting Raw OTA Update at URL: $uri');
@@ -191,27 +177,42 @@ class DeviceRepository {
       print('LOG: Waiting 2 seconds for device to prepare...');
       await Future.delayed(const Duration(seconds: 2));
 
-      final response = await request.close().timeout(const Duration(seconds: 120));
-      final responseBody = await response.transform(utf8.decoder).join();
+      HttpClientResponse response = await request.close().timeout(const Duration(seconds: 120));
+      String responseBody = await response.transform(utf8.decoder).join();
 
       print('LOG: Device Response Body: $responseBody');
 
+      // Phase 2: Mismatch Handling
       if (responseBody.contains('"status": "mismatch"') || responseBody.contains('"status":"mismatch"')) {
-        print('LOG: Target mismatch detected!');
-        throw Exception('MISMATCH: The firmware target does not match the device.');
+        print('LOG: Mismatch detected. Sending confirmation to /forceupdate...');
+        
+        // Construct /forceupdate URL
+        final forceUpdatePath = baseUrl.endsWith('/') ? '${baseUrl}forceupdate' : '$baseUrl/forceupdate';
+        final forceUri = Uri.parse(forceUpdatePath);
+
+        // RadioMaster ER8 and others require a multipart/form-data POST with action=confirm
+        var multipartRequest = http.MultipartRequest('POST', forceUri);
+        multipartRequest.fields['action'] = 'confirm';
+        
+        var forceResponse = await (_httpClient ?? http.Client()).send(multipartRequest).timeout(const Duration(seconds: 30));
+        var forceResponseBody = await forceResponse.stream.bytesToString();
+        
+        print('LOG: Force Update Response: $forceResponseBody');
+        
+        if (forceResponseBody.contains('"status": "ok"') || forceResponseBody.contains('"status":"ok"')) {
+          print('LOG: Force update confirmed!');
+          responseBody = forceResponseBody; // Treat this as the final response
+        } else {
+          throw Exception('MISMATCH: The firmware target does not match the device and force update failed. Response: $forceResponseBody');
+        }
       }
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && !responseBody.contains('"status": "ok"')) {
         print('LOG: OTA Update Failed! Status: ${response.statusCode}');
         throw Exception('Flashing failed with status: ${response.statusCode}. Body: $responseBody');
       }
       
-      print('Flash successful! Device response: $responseBody');
-      
-      // Verify ELRS specific JSON response if possible
-      if (responseBody.contains('"status": "ok"') || responseBody.contains('"status":"ok"')) {
-         // Success
-      }
+      print('Flash successful! Final response: $responseBody');
       
     } catch (e) {
       throw Exception('Failed to flash firmware: $e');
