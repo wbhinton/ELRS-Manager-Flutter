@@ -21,6 +21,7 @@ _DeviceConfig _$DeviceConfigFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       modelId: (json['modelId'] as num?)?.toInt() ?? 255,
+      modelMatch: json['modelMatch'] as bool? ?? false,
       options: json['options'] as Map<String, dynamic>? ?? const {},
       regDomain: json['reg_domain'] as String?,
       exp: json['exp'] as Map<String, dynamic>? ?? const {},
@@ -33,6 +34,7 @@ Map<String, dynamic> _$DeviceConfigToJson(_DeviceConfig instance) =>
       'uid': instance.uid,
       'pwm_outputs': instance.pwmOutputs,
       'modelId': instance.modelId,
+      'modelMatch': instance.modelMatch,
       'options': instance.options,
       'reg_domain': instance.regDomain,
       'exp': instance.exp,

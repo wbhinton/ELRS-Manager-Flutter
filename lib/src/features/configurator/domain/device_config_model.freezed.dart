@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DeviceConfig {
 
-@JsonKey(name: 'product_name') String? get productName; String get version; List<int> get uid;@JsonKey(name: 'pwm_outputs') List<int> get pwmOutputs; int get modelId; Map<String, dynamic> get options;@JsonKey(name: 'reg_domain') String? get regDomain; Map<String, dynamic> get exp;
+@JsonKey(name: 'product_name') String? get productName; String get version; List<int> get uid;@JsonKey(name: 'pwm_outputs') List<int> get pwmOutputs; int get modelId; bool get modelMatch; Map<String, dynamic> get options;@JsonKey(name: 'reg_domain') String? get regDomain; Map<String, dynamic> get exp;
 /// Create a copy of DeviceConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $DeviceConfigCopyWith<DeviceConfig> get copyWith => _$DeviceConfigCopyWithImpl<D
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceConfig&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.version, version) || other.version == version)&&const DeepCollectionEquality().equals(other.uid, uid)&&const DeepCollectionEquality().equals(other.pwmOutputs, pwmOutputs)&&(identical(other.modelId, modelId) || other.modelId == modelId)&&const DeepCollectionEquality().equals(other.options, options)&&(identical(other.regDomain, regDomain) || other.regDomain == regDomain)&&const DeepCollectionEquality().equals(other.exp, exp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceConfig&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.version, version) || other.version == version)&&const DeepCollectionEquality().equals(other.uid, uid)&&const DeepCollectionEquality().equals(other.pwmOutputs, pwmOutputs)&&(identical(other.modelId, modelId) || other.modelId == modelId)&&(identical(other.modelMatch, modelMatch) || other.modelMatch == modelMatch)&&const DeepCollectionEquality().equals(other.options, options)&&(identical(other.regDomain, regDomain) || other.regDomain == regDomain)&&const DeepCollectionEquality().equals(other.exp, exp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productName,version,const DeepCollectionEquality().hash(uid),const DeepCollectionEquality().hash(pwmOutputs),modelId,const DeepCollectionEquality().hash(options),regDomain,const DeepCollectionEquality().hash(exp));
+int get hashCode => Object.hash(runtimeType,productName,version,const DeepCollectionEquality().hash(uid),const DeepCollectionEquality().hash(pwmOutputs),modelId,modelMatch,const DeepCollectionEquality().hash(options),regDomain,const DeepCollectionEquality().hash(exp));
 
 @override
 String toString() {
-  return 'DeviceConfig(productName: $productName, version: $version, uid: $uid, pwmOutputs: $pwmOutputs, modelId: $modelId, options: $options, regDomain: $regDomain, exp: $exp)';
+  return 'DeviceConfig(productName: $productName, version: $version, uid: $uid, pwmOutputs: $pwmOutputs, modelId: $modelId, modelMatch: $modelMatch, options: $options, regDomain: $regDomain, exp: $exp)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $DeviceConfigCopyWith<$Res>  {
   factory $DeviceConfigCopyWith(DeviceConfig value, $Res Function(DeviceConfig) _then) = _$DeviceConfigCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'product_name') String? productName, String version, List<int> uid,@JsonKey(name: 'pwm_outputs') List<int> pwmOutputs, int modelId, Map<String, dynamic> options,@JsonKey(name: 'reg_domain') String? regDomain, Map<String, dynamic> exp
+@JsonKey(name: 'product_name') String? productName, String version, List<int> uid,@JsonKey(name: 'pwm_outputs') List<int> pwmOutputs, int modelId, bool modelMatch, Map<String, dynamic> options,@JsonKey(name: 'reg_domain') String? regDomain, Map<String, dynamic> exp
 });
 
 
@@ -65,14 +65,15 @@ class _$DeviceConfigCopyWithImpl<$Res>
 
 /// Create a copy of DeviceConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? productName = freezed,Object? version = null,Object? uid = null,Object? pwmOutputs = null,Object? modelId = null,Object? options = null,Object? regDomain = freezed,Object? exp = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? productName = freezed,Object? version = null,Object? uid = null,Object? pwmOutputs = null,Object? modelId = null,Object? modelMatch = null,Object? options = null,Object? regDomain = freezed,Object? exp = null,}) {
   return _then(_self.copyWith(
 productName: freezed == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
 as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as List<int>,pwmOutputs: null == pwmOutputs ? _self.pwmOutputs : pwmOutputs // ignore: cast_nullable_to_non_nullable
 as List<int>,modelId: null == modelId ? _self.modelId : modelId // ignore: cast_nullable_to_non_nullable
-as int,options: null == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
+as int,modelMatch: null == modelMatch ? _self.modelMatch : modelMatch // ignore: cast_nullable_to_non_nullable
+as bool,options: null == options ? _self.options : options // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,regDomain: freezed == regDomain ? _self.regDomain : regDomain // ignore: cast_nullable_to_non_nullable
 as String?,exp: null == exp ? _self.exp : exp // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  bool modelMatch,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceConfig() when $default != null:
-return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.options,_that.regDomain,_that.exp);case _:
+return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.modelMatch,_that.options,_that.regDomain,_that.exp);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  bool modelMatch,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceConfig():
-return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.options,_that.regDomain,_that.exp);case _:
+return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.modelMatch,_that.options,_that.regDomain,_that.exp);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'product_name')  String? productName,  String version,  List<int> uid, @JsonKey(name: 'pwm_outputs')  List<int> pwmOutputs,  int modelId,  bool modelMatch,  Map<String, dynamic> options, @JsonKey(name: 'reg_domain')  String? regDomain,  Map<String, dynamic> exp)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceConfig() when $default != null:
-return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.options,_that.regDomain,_that.exp);case _:
+return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that.modelId,_that.modelMatch,_that.options,_that.regDomain,_that.exp);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.productName,_that.version,_that.uid,_that.pwmOutputs,_that
 @JsonSerializable()
 
 class _DeviceConfig implements DeviceConfig {
-  const _DeviceConfig({@JsonKey(name: 'product_name') this.productName, this.version = 'unknown', final  List<int> uid = const [], @JsonKey(name: 'pwm_outputs') final  List<int> pwmOutputs = const [], this.modelId = 255, final  Map<String, dynamic> options = const {}, @JsonKey(name: 'reg_domain') this.regDomain, final  Map<String, dynamic> exp = const {}}): _uid = uid,_pwmOutputs = pwmOutputs,_options = options,_exp = exp;
+  const _DeviceConfig({@JsonKey(name: 'product_name') this.productName, this.version = 'unknown', final  List<int> uid = const [], @JsonKey(name: 'pwm_outputs') final  List<int> pwmOutputs = const [], this.modelId = 255, this.modelMatch = false, final  Map<String, dynamic> options = const {}, @JsonKey(name: 'reg_domain') this.regDomain, final  Map<String, dynamic> exp = const {}}): _uid = uid,_pwmOutputs = pwmOutputs,_options = options,_exp = exp;
   factory _DeviceConfig.fromJson(Map<String, dynamic> json) => _$DeviceConfigFromJson(json);
 
 @override@JsonKey(name: 'product_name') final  String? productName;
@@ -236,6 +237,7 @@ class _DeviceConfig implements DeviceConfig {
 }
 
 @override@JsonKey() final  int modelId;
+@override@JsonKey() final  bool modelMatch;
  final  Map<String, dynamic> _options;
 @override@JsonKey() Map<String, dynamic> get options {
   if (_options is EqualUnmodifiableMapView) return _options;
@@ -265,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceConfig&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.version, version) || other.version == version)&&const DeepCollectionEquality().equals(other._uid, _uid)&&const DeepCollectionEquality().equals(other._pwmOutputs, _pwmOutputs)&&(identical(other.modelId, modelId) || other.modelId == modelId)&&const DeepCollectionEquality().equals(other._options, _options)&&(identical(other.regDomain, regDomain) || other.regDomain == regDomain)&&const DeepCollectionEquality().equals(other._exp, _exp));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceConfig&&(identical(other.productName, productName) || other.productName == productName)&&(identical(other.version, version) || other.version == version)&&const DeepCollectionEquality().equals(other._uid, _uid)&&const DeepCollectionEquality().equals(other._pwmOutputs, _pwmOutputs)&&(identical(other.modelId, modelId) || other.modelId == modelId)&&(identical(other.modelMatch, modelMatch) || other.modelMatch == modelMatch)&&const DeepCollectionEquality().equals(other._options, _options)&&(identical(other.regDomain, regDomain) || other.regDomain == regDomain)&&const DeepCollectionEquality().equals(other._exp, _exp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,productName,version,const DeepCollectionEquality().hash(_uid),const DeepCollectionEquality().hash(_pwmOutputs),modelId,const DeepCollectionEquality().hash(_options),regDomain,const DeepCollectionEquality().hash(_exp));
+int get hashCode => Object.hash(runtimeType,productName,version,const DeepCollectionEquality().hash(_uid),const DeepCollectionEquality().hash(_pwmOutputs),modelId,modelMatch,const DeepCollectionEquality().hash(_options),regDomain,const DeepCollectionEquality().hash(_exp));
 
 @override
 String toString() {
-  return 'DeviceConfig(productName: $productName, version: $version, uid: $uid, pwmOutputs: $pwmOutputs, modelId: $modelId, options: $options, regDomain: $regDomain, exp: $exp)';
+  return 'DeviceConfig(productName: $productName, version: $version, uid: $uid, pwmOutputs: $pwmOutputs, modelId: $modelId, modelMatch: $modelMatch, options: $options, regDomain: $regDomain, exp: $exp)';
 }
 
 
@@ -285,7 +287,7 @@ abstract mixin class _$DeviceConfigCopyWith<$Res> implements $DeviceConfigCopyWi
   factory _$DeviceConfigCopyWith(_DeviceConfig value, $Res Function(_DeviceConfig) _then) = __$DeviceConfigCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'product_name') String? productName, String version, List<int> uid,@JsonKey(name: 'pwm_outputs') List<int> pwmOutputs, int modelId, Map<String, dynamic> options,@JsonKey(name: 'reg_domain') String? regDomain, Map<String, dynamic> exp
+@JsonKey(name: 'product_name') String? productName, String version, List<int> uid,@JsonKey(name: 'pwm_outputs') List<int> pwmOutputs, int modelId, bool modelMatch, Map<String, dynamic> options,@JsonKey(name: 'reg_domain') String? regDomain, Map<String, dynamic> exp
 });
 
 
@@ -302,14 +304,15 @@ class __$DeviceConfigCopyWithImpl<$Res>
 
 /// Create a copy of DeviceConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? productName = freezed,Object? version = null,Object? uid = null,Object? pwmOutputs = null,Object? modelId = null,Object? options = null,Object? regDomain = freezed,Object? exp = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? productName = freezed,Object? version = null,Object? uid = null,Object? pwmOutputs = null,Object? modelId = null,Object? modelMatch = null,Object? options = null,Object? regDomain = freezed,Object? exp = null,}) {
   return _then(_DeviceConfig(
 productName: freezed == productName ? _self.productName : productName // ignore: cast_nullable_to_non_nullable
 as String?,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,uid: null == uid ? _self._uid : uid // ignore: cast_nullable_to_non_nullable
 as List<int>,pwmOutputs: null == pwmOutputs ? _self._pwmOutputs : pwmOutputs // ignore: cast_nullable_to_non_nullable
 as List<int>,modelId: null == modelId ? _self.modelId : modelId // ignore: cast_nullable_to_non_nullable
-as int,options: null == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
+as int,modelMatch: null == modelMatch ? _self.modelMatch : modelMatch // ignore: cast_nullable_to_non_nullable
+as bool,options: null == options ? _self._options : options // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,regDomain: freezed == regDomain ? _self.regDomain : regDomain // ignore: cast_nullable_to_non_nullable
 as String?,exp: null == exp ? _self._exp : exp // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,

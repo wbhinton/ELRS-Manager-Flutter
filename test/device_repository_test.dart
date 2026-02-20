@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:elrs_manager/src/features/flashing/data/device_repository.dart';
+import 'package:elrs_mobile/src/features/flashing/data/device_repository.dart';
 
 void main() {
   group('DeviceRepository', () {
@@ -26,7 +26,8 @@ void main() {
 
       final result = await deviceRepository.fetchConfig();
       
-      expect(result, equals(mockData));
+      expect(result.productName, equals('Test RX'));
+      expect(result.uid, equals([1, 2, 3]));
     });
 
     test('fetchHardware returns hardware map on success', () async {

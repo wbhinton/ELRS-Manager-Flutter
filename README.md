@@ -1,4 +1,4 @@
-# ExpressLRS Manager
+# ExpressLRS Mobile
 
 > [!IMPORTANT]
 > **Work in Progress**: This project is currently under active development and should be considered an alpha/experimental tool.

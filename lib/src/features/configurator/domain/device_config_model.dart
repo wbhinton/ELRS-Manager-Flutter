@@ -11,6 +11,7 @@ abstract class DeviceConfig with _$DeviceConfig {
     @Default([]) List<int> uid,
     @JsonKey(name: 'pwm_outputs') @Default([]) List<int> pwmOutputs,
     @Default(255) int modelId,
+    @Default(false) bool modelMatch,
     @Default({}) Map<String, dynamic> options,
     @JsonKey(name: 'reg_domain') String? regDomain,
     @Default({}) Map<String, dynamic> exp, // Betaflight/Export options often here

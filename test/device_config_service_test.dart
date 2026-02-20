@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:elrs_manager/src/features/config/domain/runtime_config_model.dart';
-import 'package:elrs_manager/src/features/config/services/device_config_service.dart';
+import 'package:elrs_mobile/src/features/config/domain/runtime_config_model.dart';
+import 'package:elrs_mobile/src/features/config/services/device_config_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
@@ -22,6 +22,8 @@ void main() {
         'settings': {'field1': 'val1'},
         'options': {'wifi-ssid': 'mikes-wifi'},
         'config': {'hardware': 'lite'},
+        'modelId': 255,
+        'modelMatch': false,
       };
 
       dioAdapter.onGet(
@@ -88,7 +90,15 @@ void main() {
 
       final config = RuntimeConfig.fromJson(json);
       expect(config.settings['s'], 1);
-      expect(config.toJson(), json);
+      expect(config.toJson(), equals({
+        'product_name': null,
+        'version': 'unknown',
+        'target': null,
+        'activeIp': null,
+        'settings': {'s': 1},
+        'options': {'o': 2},
+        'config': {'c': 3},
+      }));
     });
   });
 }

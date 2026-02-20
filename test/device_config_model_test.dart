@@ -1,4 +1,4 @@
-import 'package:elrs_manager/src/features/configurator/domain/device_config_model.dart';
+import 'package:elrs_mobile/src/features/configurator/domain/device_config_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
