@@ -25,5 +25,5 @@ ExpressLRS Manager is a modern, cross-platform Flutter application designed to s
 **Compatibility:** Designed for use with ExpressLRS 3.x and 4.x firmware.
 
 **Credits:** Special thanks to the ExpressLRS dev team for the open-source WebUI and Configurator logic that made this implementation possible.
----
+
 *Created and maintained for the FPV community.*
