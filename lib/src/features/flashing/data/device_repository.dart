@@ -8,6 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/networking/device_dio.dart';
 import '../../configurator/domain/device_config_model.dart';
 import '../utils/firmware_assembler.dart';
+import 'package:path_provider/path_provider.dart';
 
 part 'device_repository.g.dart';
 
@@ -122,6 +123,19 @@ class DeviceRepository {
         if (!filenameToUpload.endsWith('.bin')) filenameToUpload += '.bin';
         
         print('Unified Firmware Built. Size: ${dataToUpload.length} bytes');
+        
+        // --- FORENSIC DEBUG: Save to Documents Directory ---
+        try {
+          final directory = await getApplicationDocumentsDirectory();
+          final debugFile = File('${directory.path}/generated_er8.bin');
+          await debugFile.writeAsBytes(dataToUpload);
+          print('I/flutter: DEBUG: Firmware saved to: ${debugFile.path}');
+          print('I/flutter: TIP: Run \'open "${directory.path}"\' in your terminal to see the file.');
+        } catch (e) {
+          print('Warning: Failed to save debug firmware file: $e');
+        }
+        // --------------------------------------------------
+
       } else {
         dataToUpload = firmwareData;
         filenameToUpload = filename;
@@ -153,75 +167,69 @@ class DeviceRepository {
       print('Trimming Delta: $trimmingDelta');
       print('Final Byte Count: ${dataToUpload.length}');
 
-      // Manual Byte-Perfect Flashing via HttpClient
-      final client = HttpClient();
-      client.connectionTimeout = const Duration(seconds: 10);
+      // 1. Manually construct the multipart boundaries
+      final baseUrl = _dio.options.baseUrl;
+      final uri = Uri.parse(baseUrl.endsWith('/') ? '${baseUrl}update' : '$baseUrl/update');
+
+      final boundary = '----ExpressLRSFormBoundaryFlutter';
+      final headerString = '--$boundary\r\n'
+          'Content-Disposition: form-data; name="upload"; filename="$filenameToUpload"\r\n'
+          'Content-Type: application/octet-stream\r\n\r\n';
+      final headerBytes = utf8.encode(headerString);
+      final footerString = '\r\n--$boundary--\r\n';
+      final footerBytes = utf8.encode(footerString);
+
+      // 2. Calculate EXACT total length of the request body to disable chunked encoding
+      final totalBodyLength = headerBytes.length + dataToUpload.length + footerBytes.length;
+
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
       
       try {
-        final baseUrl = _dio.options.baseUrl;
-        final updatePath = baseUrl.endsWith('/') ? '${baseUrl}update' : '$baseUrl/update';
-        final uri = Uri.parse(updatePath);
-        
-        final boundary = '----ELRSManager${DateTime.now().millisecondsSinceEpoch}';
-        
-        // Manual Part Construction
-        final headerStr = '--$boundary\r\n'
-            'Content-Disposition: form-data; name="upload"; filename="$filenameToUpload"\r\n'
-            'Content-Type: application/octet-stream\r\n\r\n';
-        final headerBytes = utf8.encode(headerStr);
-        final footerStr = '\r\n--$boundary--\r\n';
-        final footerBytes = utf8.encode(footerStr);
-        
-        final totalBodyLength = headerBytes.length + dataToUpload.length + footerBytes.length;
-        
-        print('LOG: Starting Manual Flash. Body Length: $totalBodyLength');
-        
         final request = await client.postUrl(uri);
-        request.contentLength = totalBodyLength;
-        request.headers.set('Content-Type', 'multipart/form-data; boundary=$boundary');
-        request.headers.set('X-FileSize', dataToUpload.length.toString());
-        
-        // Write segments
+
+        // 3. Set rigid headers: this forces a fixed Content-Length and kills chunking
+        request.contentLength = totalBodyLength; 
+        request.headers.set(HttpHeaders.contentTypeHeader, 'multipart/form-data; boundary=$boundary');
+        request.headers.set('X-FileSize', dataToUpload.length.toString()); // Raw binary size only
+
+        // 4. Write payload in exact order
         request.add(headerBytes);
         request.add(dataToUpload);
         request.add(footerBytes);
-        
-        final response = await request.close();
-        final responseBody = await response.transform(utf8.decoder).join();
-        print('LOG: Initial Manual Response: $responseBody');
 
-        // Automatic Two-Step Handshake
-        if (responseBody.contains('"status": "mismatch"') || responseBody.contains('"status":"mismatch"')) {
-          print('LOG: Mismatch detected. Waiting 2 seconds for manual confirmation...');
-          await Future.delayed(const Duration(seconds: 2));
+        final HttpClientResponse response = await request.close().timeout(const Duration(seconds: 120));
+        final String responseBody = await response.transform(utf8.decoder).join();
+        final responseData = jsonDecode(responseBody.trim());
+
+        // 5. Handle Mismatch Protocol (The 2-step handshake)
+        if (responseData['status'] == 'mismatch') {
+          print('LOG: Mismatch detected. Executing secondary force update...');
           
-          final forcePath = updatePath.replaceAll('/update', '/forceupdate');
-          final forceUri = Uri.parse(forcePath);
-          
+          final forceUri = Uri.parse(baseUrl.endsWith('/') ? '${baseUrl}forceupdate' : '$baseUrl/forceupdate');
           final forceRequest = await client.postUrl(forceUri);
-          final forceBoundary = '----ELRSManagerForce${DateTime.now().millisecondsSinceEpoch}';
           
+          final forceBoundary = '----ExpressLRSForceBoundary';
           final forceBodyStr = '--$forceBoundary\r\n'
-              'Content-Disposition: form-data; name="action"\r\n\r\n'
-              'confirm\r\n'
-              '--$forceBoundary--\r\n';
-          final forceBodyBytes = utf8.encode(forceBodyStr);
+              'Content-Disposition: form-data; name="action"\r\n\r\nconfirm\r\n--$forceBoundary--\r\n';
+          final forceBytes = utf8.encode(forceBodyStr);
           
-          forceRequest.contentLength = forceBodyBytes.length;
-          forceRequest.headers.set('Content-Type', 'multipart/form-data; boundary=$forceBoundary');
+          forceRequest.contentLength = forceBytes.length;
+          forceRequest.headers.set(HttpHeaders.contentTypeHeader, 'multipart/form-data; boundary=$forceBoundary');
+          forceRequest.add(forceBytes);
           
-          forceRequest.add(forceBodyBytes);
-          final forceResponse = await forceRequest.close();
+          final forceResponse = await forceRequest.close().timeout(const Duration(seconds: 30));
           final forceResponseBody = await forceResponse.transform(utf8.decoder).join();
-          print('LOG: Manual Force Update Response: $forceResponseBody');
+          final forceData = jsonDecode(forceResponseBody.trim());
           
-          if (!forceResponseBody.contains('"status": "ok"') && !forceResponseBody.contains('"status":"ok"')) {
-            throw Exception('Manual force update failed: $forceResponseBody');
+          if (forceData['status'] != 'ok') {
+            throw Exception('Force update failed: $forceResponseBody');
           }
-        } else if (!responseBody.contains('"status": "ok"') && !responseBody.contains('"status":"ok"')) {
+        } else if (responseData['status'] != 'ok') {
           throw Exception('Flashing failed: $responseBody');
         }
         
+        print('LOG: Flash successful!');
+
       } finally {
         client.close();
       }

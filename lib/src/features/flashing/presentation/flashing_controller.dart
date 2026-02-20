@@ -216,8 +216,15 @@ class FlashingController extends _$FlashingController {
       // I will add a check: if filename ends with .gz, skip patching.
       
       Uint8List finalBytes;
+      
+      final targetConfig = state.selectedTarget!.config;
+      final isUnified = targetConfig.containsKey('layout_file');
+
       if (firmwareData.filename.endsWith('.gz')) {
          print('Skipping patching for compressed firmware: ${firmwareData.filename}');
+         finalBytes = firmwareData.bytes;
+      } else if (isUnified) {
+         print('Target is Unified (has layout_file). Skipping legacy FirmwarePatcher.');
          finalBytes = firmwareData.bytes;
       } else {
         final config = PatchConfiguration(
@@ -244,10 +251,8 @@ class FlashingController extends _$FlashingController {
       
       // Check if this target supports/requires Unified Building
       // Usually indicated by presence of layout_file in config.
-      // Or we can just try to fetch it.
-      final targetConfig = state.selectedTarget!.config;
-      if (targetConfig.containsKey('layout_file')) {
-         print('Target has layout_file. Preparing Target-Aware Build...');
+      if (isUnified) {
+         print('Preparing Target-Aware Build...');
          try {
            // 1. Get Hardware Zip
            final zipFile = await cacheService.getHardwareZipFile(state.selectedVersion!);

@@ -44,7 +44,11 @@ class FirmwareAssembler {
     final builder = BytesBuilder();
 
     // 1. Trim Firmware
-    final end = findFirmwareEnd(firmware, platform);
+    print('DEBUG: Original Firmware Size: ${firmware.length}');
+    final end = _findFirmwareEnd(firmware, platform);
+    print('DEBUG: Calculated True End (Surgical): $end');
+    print('DEBUG: Bytes Stripped (Padding + Old Config): ${firmware.length - end}');
+    
     final trimmedFirmware = firmware.sublist(0, end);
     builder.add(trimmedFirmware);
 
@@ -109,37 +113,39 @@ class FirmwareAssembler {
     return padded;
   }
 
-  /// Scans to find the end of the valid firmware data based on the platform.
-  static int findFirmwareEnd(Uint8List firmware, String platform) {
-    if (platform == 'esp8285') {
-      if (firmware.length < 0x1008 || firmware[0x1000] != 0xE9) return firmware.length;
-      final segmentCount = firmware[0x1001];
-      int pos = 0x1008;
-      for (int i = 0; i < segmentCount; i++) {
-        if (pos + 8 > firmware.length) break;
-        final size = firmware[pos + 4] | (firmware[pos + 5] << 8) | (firmware[pos + 6] << 16) | (firmware[pos + 7] << 24);
-        pos += 8 + size;
-      }
-      return (pos + 15) & ~15;
-    } else if (platform.startsWith('esp32')) {
-      if (firmware.isEmpty || firmware[0] != 0xE9 || firmware.length < 24) return firmware.length;
-      final segmentCount = firmware[1];
-      print('DEBUG: Segment Count found: $segmentCount');
-      
-      int pos = 24;
-      for (int i = 0; i < segmentCount; i++) {
-        if (pos + 8 > firmware.length) break;
-        // Explicit Little Endian size parsing
-        final size = firmware[pos + 4] | (firmware[pos + 5] << 8) | (firmware[pos + 6] << 16) | (firmware[pos + 7] << 24);
-        pos += 8 + size;
-      }
-      // Bit-Perfect Alignment: (pos + 15) & ~15 per user request
-      int end = (pos + 15) & ~15;
-      // Mandatory ESP32 padding: +32 bytes
-      final finalEnd = end + 32;
-      print('DEBUG: Final calculated end: $finalEnd');
-      return finalEnd > firmware.length ? firmware.length : finalEnd;
+  static int findFirmwareEnd(Uint8List binary, String platform) {
+    return _findFirmwareEnd(binary, platform);
+  }
+
+  static int _findFirmwareEnd(Uint8List binary, String platform) {
+    int pos = 0;
+    if (platform == 'esp8285') pos = 0x1000;
+    
+    // Magic byte check (0xE9)
+    if (binary[pos] != 0xE9) {
+      print('DEBUG: Magic byte not found, returning full length');
+      return binary.length;
     }
-    return firmware.length;
+    
+    int segments = binary[pos + 1];
+    pos = platform.startsWith('esp32') ? 24 : 0x1008;
+    
+    for (int i = 0; i < segments; i++) {
+      if (pos + 8 > binary.length) {
+        print('DEBUG: Warning: Expected more segments but hit end of file.');
+        break;
+      }
+      // Read 32-bit size (Little Endian)
+      int size = binary[pos + 4] | (binary[pos + 5] << 8) | (binary[pos + 6] << 16) | (binary[pos + 7] << 24);
+      pos += 8 + size;
+    }
+    
+    // THE FIX: Exact bitwise match to official JS
+    pos = (pos + 16) & ~15; 
+    if (platform.startsWith('esp32')) {
+      pos += 32; // Mandatory ESP32 gap
+    }
+    
+    return pos;
   }
 }
