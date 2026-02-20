@@ -126,14 +126,16 @@ class _InfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the product name from hardware or root
-    final productName = config.productName ?? config.config['hardware']?['name'] ?? 'Unknown';
+    // Determine the product name from settings or root
+    final productName = config.settings.productName ?? config.productName ?? 'Unknown';
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _buildInfoTile('Product Name', productName),
         _buildInfoTile('Firmware Version', config.version),
+        if (config.target != null)
+          _buildInfoTile('Target', config.target),
       ],
     );
   }
@@ -164,38 +166,47 @@ class _GeneralTab extends StatelessWidget {
         const SizedBox(height: 16),
         
         // Regulatory Domain
-        if (settings.containsKey('domain'))
+        if (settings.domain != null)
           _buildDropdown(
             title: 'Regulatory Domain',
-            value: settings['domain'],
+            value: settings.domain!,
             options: ElrsMappings.domains,
             onChanged: (val) => editor.updateSetting('domain', val),
           ),
 
         // UID Binding (Volatile, Persistent, etc)
-        if (settings.containsKey('vbind'))
+        if (settings.vbind != null || draft.config.vbind != null)
           _buildDropdown(
             title: 'Binding Mode (vbind)',
-            value: settings['vbind'],
+            value: settings.vbind ?? draft.config.vbind!,
             options: ElrsMappings.vbind,
             onChanged: (val) => editor.updateSetting('vbind', val),
           ),
 
         // Serial Protocol
-        if (settings.containsKey('serialProtocol'))
+        if (settings.serialProtocol != null || draft.config.serialProtocol != null)
           _buildDropdown(
             title: 'Serial Protocol',
-            value: settings['serialProtocol'],
+            value: settings.serialProtocol ?? draft.config.serialProtocol!,
             options: ElrsMappings.serialProtocols,
-            onChanged: (val) => editor.updateSetting('serialProtocol', val),
+            onChanged: (val) => editor.updateSetting('serial-protocol', val),
           ),
 
-        // TX/RX specific options
-        if (settings.containsKey('uartBaud'))
+        // Model ID (hyphenated modelid check)
+        if (draft.config.modelId != null)
+          _buildTextInput(
+            title: 'Model ID',
+            value: draft.config.modelId.toString(),
+            onChanged: (val) => editor.updateConfigValue('modelid', int.tryParse(val) ?? draft.config.modelId),
+            isNumber: true,
+          ),
+
+        // UART Baud Rate
+        if (settings.uartBaud != null)
           _buildTextInput(
             title: 'UART Baud Rate',
-            value: settings['uartBaud'].toString(),
-            onChanged: (val) => editor.updateSetting('uartBaud', int.tryParse(val) ?? settings['uartBaud']),
+            value: settings.uartBaud.toString(),
+            onChanged: (val) => editor.updateSetting('uart-baud', int.tryParse(val) ?? settings.uartBaud),
             isNumber: true,
           ),
 
@@ -203,25 +214,25 @@ class _GeneralTab extends StatelessWidget {
         const Text('Wi-Fi Options', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
 
-        if (options.containsKey('wifi-ssid'))
+        if (options.wifiSsid != null)
           _buildTextInput(
             title: 'Home WiFi SSID',
-            value: options['wifi-ssid'],
+            value: options.wifiSsid!,
             onChanged: (val) => editor.updateOption('wifi-ssid', val),
           ),
 
-        if (options.containsKey('wifi-password'))
+        if (options.wifiPassword != null)
           _buildTextInput(
             title: 'Home WiFi Password',
-            value: options['wifi-password'],
+            value: options.wifiPassword!,
             onChanged: (val) => editor.updateOption('wifi-password', val),
             obscure: true,
           ),
           
-        if (draft.config.containsKey('pwm') && draft.config['pwm'] is List) ...[
+        if (draft.config.pwm.isNotEmpty) ...[
           const Divider(height: 32),
           PwmMappingPanel(
-            pwmArray: draft.config['pwm'] as List<dynamic>,
+            pwmArray: draft.config.pwm,
             onPinUpdated: editor.updatePwmPin,
           ),
         ],

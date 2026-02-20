@@ -15,9 +15,9 @@ void main() {
       baseConfig = const RuntimeConfig(
         productName: 'Test RX',
         version: '4.0.0',
-        settings: {'domain': 0, 'serialProtocol': 0},
-        options: {'wifi-ssid': 'HomeNet', 'wifi-password': 'secret_password'},
-        config: {'hardware': {'type': 'rx', 'has_pwm': false}},
+        settings: ElrsSettings(domain: 0, serialProtocol: 0),
+        options: ElrsOptions(wifiSsid: 'HomeNet', wifiPassword: 'secret_password'),
+        config: ElrsConfig(hardware: {'type': 'rx', 'has_pwm': false}),
       );
     });
 
@@ -36,7 +36,7 @@ void main() {
       
       expect(viewModel.hasChanges, isTrue);
       // Access state through the container for safety, or via the exposed state property if synced
-      expect(container.read(deviceEditorProvider)?.settings['domain'], 1);
+      expect(container.read(deviceEditorProvider)?.settings.domain, 1);
     });
 
     test('Updating an option flags hasChanges as true', () {
@@ -44,7 +44,7 @@ void main() {
       viewModel.updateOption('wifi-ssid', 'NewNet');
       
       expect(viewModel.hasChanges, isTrue);
-      expect(container.read(deviceEditorProvider)?.options['wifi-ssid'], 'NewNet');
+      expect(container.read(deviceEditorProvider)?.options.wifiSsid, 'NewNet');
     });
 
     test('saveChanges correctly orchestrates saving logic depending on whats changed', () async {
@@ -81,7 +81,7 @@ void main() {
       Future<void> mockReboot(String ip) async {};
 
       viewModel.updateOption('wifi-ssid', 'NewNet');
-      viewModel.updateSetting('serialProtocol', 1);
+      viewModel.updateSetting('serial-protocol', 1);
 
       await viewModel.saveChanges('10.0.0.1', mockSaveOptions, mockSaveConfig, mockReboot);
 

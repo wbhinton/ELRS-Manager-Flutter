@@ -18,7 +18,7 @@ import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/networking/device_dio.dart';
-import '../../configurator/domain/device_config_model.dart';
+import '../../config/domain/runtime_config_model.dart';
 import '../utils/firmware_assembler.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -40,10 +40,10 @@ class DeviceRepository {
 
   /// Fetches the current configuration from the device.
   /// Endpoint: GET /config
-  Future<DeviceConfig> fetchConfig() async {
+  Future<RuntimeConfig> fetchConfig() async {
     try {
       final response = await _dio.get('/config');
-      return DeviceConfig.fromJson(response.data as Map<String, dynamic>);
+      return RuntimeConfig.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to fetch config: $e');
     }
@@ -70,8 +70,8 @@ class DeviceRepository {
       await _dio.post(
         '/config',
         data: {
-          'wifi_ssid': ssid,
-          'wifi_password': password,
+          'wifi-ssid': ssid,
+          'wifi-password': password,
         },
       );
     } catch (e) {
@@ -288,7 +288,7 @@ class DeviceRepository {
       await _dio.post(
         '/config',
         data: {
-          'modelId': modelId,
+          'modelid': modelId,
           'modelMatch': enabled,
         },
       );
@@ -301,26 +301,24 @@ class DeviceRepository {
   /// Endpoint: POST /config
   ///
   /// [mapping] maps Output Pin Index (0-based) to Input Channel Index.
-  /// The payload sent is {'pwm_outputs': [ch_for_pin0, ch_for_pin1, ...]}
+  /// The payload sent is {'pwm': [ch_for_pin0, ch_for_pin1, ...]}
   Future<void> setPwmMapping(Map<int, int> mapping) async {
     try {
-      // Convert map to list. Identifying max index to determine list size.
-      // Assuming contiguous indices starting from 0.
       if (mapping.isEmpty) return;
       
       final maxIndex = mapping.keys.reduce((a, b) => a > b ? a : b);
-      final List<int> pwmOutputs = List.filled(maxIndex + 1, 0);
+      final List<int> pwm = List.filled(maxIndex + 1, 0);
       
       mapping.forEach((pin, channel) {
-        if (pin >= 0 && pin < pwmOutputs.length) {
-          pwmOutputs[pin] = channel;
+        if (pin >= 0 && pin < pwm.length) {
+          pwm[pin] = channel;
         }
       });
 
       await _dio.post(
         '/config',
         data: {
-          'pwm_outputs': pwmOutputs,
+          'pwm': pwm,
         },
       );
     } catch (e) {

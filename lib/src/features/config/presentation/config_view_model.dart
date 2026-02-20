@@ -144,10 +144,11 @@ class ConfigViewModel extends _$ConfigViewModel {
     final currentConfig = state.value;
     if (currentConfig == null) return;
 
-    final updatedOptions = Map<String, dynamic>.from(currentConfig.options);
-    updatedOptions['wifi-ssid'] = ssid;
+    final json = currentConfig.options.toJson();
+    json['wifi-ssid'] = ssid;
+    final updatedOptions = ElrsOptions.fromJson(json);
 
-    await _saveOptions(ip, updatedOptions);
+    await _saveOptions(ip, json);
     
     state = AsyncValue.data(currentConfig.copyWith(
       options: updatedOptions,
@@ -158,10 +159,11 @@ class ConfigViewModel extends _$ConfigViewModel {
     final currentConfig = state.value;
     if (currentConfig == null) return;
 
-    final updatedOptions = Map<String, dynamic>.from(currentConfig.options);
-    updatedOptions['wifi-password'] = password;
+    final json = currentConfig.options.toJson();
+    json['wifi-password'] = password;
+    final updatedOptions = ElrsOptions.fromJson(json);
 
-    await _saveOptions(ip, updatedOptions);
+    await _saveOptions(ip, json);
     
     state = AsyncValue.data(currentConfig.copyWith(
       options: updatedOptions,
@@ -172,10 +174,11 @@ class ConfigViewModel extends _$ConfigViewModel {
     final currentConfig = state.value;
     if (currentConfig == null) return;
 
-    final updatedOptions = Map<String, dynamic>.from(currentConfig.options);
-    updatedOptions[key] = value;
+    final json = currentConfig.options.toJson();
+    json[key] = value;
+    final updatedOptions = ElrsOptions.fromJson(json);
 
-    await _saveOptions(ip, updatedOptions);
+    await _saveOptions(ip, json);
     
     state = AsyncValue.data(currentConfig.copyWith(
       options: updatedOptions,

@@ -17,7 +17,10 @@ void main() {
     });
 
     test('fetchConfig returns configuration map on success', () async {
-      final mockData = {'uid': [1, 2, 3], 'product_name': 'Test RX'};
+      final mockData = {
+        'product_name': 'Test RX',
+        'options': {'uid': [1, 2, 3]},
+      };
       
       dioAdapter.onGet(
         '/config',
@@ -27,7 +30,7 @@ void main() {
       final result = await deviceRepository.fetchConfig();
       
       expect(result.productName, equals('Test RX'));
-      expect(result.uid, equals([1, 2, 3]));
+      expect(result.options.uid, equals([1, 2, 3]));
     });
 
     test('fetchHardware returns hardware map on success', () async {

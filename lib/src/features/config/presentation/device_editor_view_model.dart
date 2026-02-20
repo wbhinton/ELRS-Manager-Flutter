@@ -16,22 +16,13 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
   /// Initializes the editor with a fresh config from the device.
   void initialize(RuntimeConfig config) {
     _originalConfig = config;
-    
-    // Create a deep copy of the maps to avoid mutating the original
-    state = config.copyWith(
-      settings: Map<String, dynamic>.from(config.settings),
-      options: Map<String, dynamic>.from(config.options),
-      config: Map<String, dynamic>.from(config.config),
-    );
+    state = config;
   }
 
   /// Checks if the current draft differs from the original configuration.
   bool get hasChanges {
     if (_originalConfig == null || state == null) return false;
-
-    return !_mapsEqual(_originalConfig!.settings, state!.settings) ||
-           !_mapsEqual(_originalConfig!.options, state!.options) ||
-           !_mapsEqual(_originalConfig!.config, state!.config);
+    return _originalConfig != state;
   }
 
   bool get isSaving => _isSaving;
@@ -40,38 +31,37 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
   void updateSetting(String key, dynamic value) {
     if (state == null) return;
     
-    final newSettings = Map<String, dynamic>.from(state!.settings);
-    newSettings[key] = value;
+    final json = state!.settings.toJson();
+    json[key] = value;
     
-    state = state!.copyWith(settings: newSettings);
+    state = state!.copyWith(settings: ElrsSettings.fromJson(json));
   }
 
   /// Updates a specific option in the 'options' map.
   void updateOption(String key, dynamic value) {
     if (state == null) return;
     
-    final newOptions = Map<String, dynamic>.from(state!.options);
-    newOptions[key] = value;
+    final json = state!.options.toJson();
+    json[key] = value;
     
-    state = state!.copyWith(options: newOptions);
+    state = state!.copyWith(options: ElrsOptions.fromJson(json));
   }
 
   /// Updates a specific config value in the 'config' map.
   void updateConfigValue(String key, dynamic value) {
     if (state == null) return;
     
-    final newConfig = Map<String, dynamic>.from(state!.config);
-    newConfig[key] = value;
+    final json = state!.config.toJson();
+    json[key] = value;
     
-    state = state!.copyWith(config: newConfig);
+    state = state!.copyWith(config: ElrsConfig.fromJson(json));
   }
 
   /// Updates a specific PWM pin's configuration.
   void updatePwmPin(int index, Map<String, dynamic> pinConfig) {
-    if (state == null || !state!.config.containsKey('pwm')) return;
+    if (state == null) return;
 
-    final newConfig = Map<String, dynamic>.from(state!.config);
-    final List<dynamic> oldPwmList = newConfig['pwm'];
+    final List<dynamic> oldPwmList = state!.config.pwm;
     
     // Create a new list to ensure immutability is respected
     final List<dynamic> newPwmList = List<dynamic>.from(oldPwmList);
@@ -79,8 +69,9 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
     // Ensure the index is within bounds before updating
     if (index >= 0 && index < newPwmList.length) {
       newPwmList[index] = pinConfig;
-      newConfig['pwm'] = newPwmList;
-      state = state!.copyWith(config: newConfig);
+      state = state!.copyWith(
+        config: state!.config.copyWith(pwm: newPwmList),
+      );
     }
   }
 
@@ -94,22 +85,23 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
   ) async {
     if (!hasChanges || state == null || _originalConfig == null) return false;
 
-    setSaving(true);
+    _isSaving = true;
+    ref.notifyListeners();
+
     try {
       // 1. Save Options if changed
-      if (!_mapsEqual(_originalConfig!.options, state!.options)) {
-        await saveOptions(targetIp, state!.options);
+      if (_originalConfig!.options != state!.options) {
+        await saveOptions(targetIp, state!.options.toJson());
       }
 
       // 2. Save Config if changed
-      if (!_mapsEqual(_originalConfig!.config, state!.config) ||
-          !_mapsEqual(_originalConfig!.settings, state!.settings)) {
+      if (_originalConfig!.config != state!.config ||
+          _originalConfig!.settings != state!.settings) {
         
-        // The /config endpoint expects 'settings', 'config', and 'modelId'
-        // Construct the payload based on the device's expected format.
+        // The /config endpoint expects 'settings', 'config', and other core fields
         final payload = <String, dynamic>{
-          'settings': state!.settings,
-          'config': state!.config,
+          'settings': state!.settings.toJson(),
+          'config': state!.config.toJson(),
         };
         await saveConfig(targetIp, payload);
       }
@@ -117,10 +109,12 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
       // 3. Trigger Reboot
       await reboot(targetIp);
 
-      // Successfully sent commands. The caller (UI) should handle the reconnect overlay.
+      _isSaving = false;
+      ref.notifyListeners();
       return true;
     } catch (e) {
-      setSaving(false);
+      _isSaving = false;
+      ref.notifyListeners();
       rethrow;
     }
   }
@@ -129,43 +123,6 @@ class DeviceEditorViewModel extends Notifier<RuntimeConfig?> {
   void setSaving(bool saving) {
     _isSaving = saving;
     ref.notifyListeners();
-  }
-
-  // Helper method to compare two maps for equality (including nested lists).
-  bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) {
-    if (a.length != b.length) return false;
-    for (final key in a.keys) {
-      if (!b.containsKey(key)) return false;
-      
-      final valA = a[key];
-      final valB = b[key];
-
-      if (valA is List && valB is List) {
-        if (!_listsEqual(valA, valB)) return false;
-      } else if (valA is Map<String, dynamic> && valB is Map<String, dynamic>) {
-        if (!_mapsEqual(valA, valB)) return false;
-      } else if (valA != valB) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _listsEqual(List<dynamic> a, List<dynamic> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      final valA = a[i];
-      final valB = b[i];
-
-      if (valA is Map<String, dynamic> && valB is Map<String, dynamic>) {
-        if (!_mapsEqual(valA, valB)) return false;
-      } else if (valA is List && valB is List) {
-        if (!_listsEqual(valA, valB)) return false;
-      } else if (valA != valB) {
-        return false;
-      }
-    }
-    return true;
   }
 }
 

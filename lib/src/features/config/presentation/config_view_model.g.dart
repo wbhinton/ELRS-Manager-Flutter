@@ -81,7 +81,7 @@ final class ConfigViewModelProvider
   ConfigViewModel create() => ConfigViewModel();
 }
 
-String _$configViewModelHash() => r'02861cc76a4ced7a6f19590c4bfb389bbc42e3f5';
+String _$configViewModelHash() => r'41b8922e0dc421ec056c7993b6ac384f2ba2c211';
 
 abstract class _$ConfigViewModel extends $AsyncNotifier<RuntimeConfig?> {
   FutureOr<RuntimeConfig?> build();

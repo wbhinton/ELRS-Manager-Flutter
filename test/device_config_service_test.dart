@@ -19,9 +19,10 @@ void main() {
 
     test('fetchConfig returns RuntimeConfig on success', () async {
       final mockResponse = {
-        'settings': {'field1': 'val1'},
+        'product_name': 'Test RX',
+        'settings': {'domain': 1},
         'options': {'wifi-ssid': 'mikes-wifi'},
-        'config': {'hardware': 'lite'},
+        'config': {'hardware': {'type': 'lite'}},
         'modelId': 255,
         'modelMatch': false,
       };
@@ -33,9 +34,10 @@ void main() {
 
       final result = await service.fetchConfig(ip);
 
-      expect(result.settings['field1'], equals('val1'));
-      expect(result.options['wifi-ssid'], equals('mikes-wifi'));
-      expect(result.config['hardware'], equals('lite'));
+      expect(result.productName, equals('Test RX'));
+      expect(result.settings.domain, equals(1));
+      expect(result.options.wifiSsid, equals('mikes-wifi'));
+      expect(result.config.hardware?['type'], equals('lite'));
     });
 
     test('saveOptions sends correct payload and headers', () async {
@@ -83,22 +85,14 @@ void main() {
   group('RuntimeConfig model', () {
     test('fromJson and toJson work correctly', () {
       final json = {
-        'settings': {'s': 1},
-        'options': {'o': 2},
-        'config': {'c': 3},
+        'settings': {'domain': 1},
+        'options': {'wifi-ssid': 'wifi'},
+        'config': {'modelid': 3},
       };
 
       final config = RuntimeConfig.fromJson(json);
-      expect(config.settings['s'], 1);
-      expect(config.toJson(), equals({
-        'product_name': null,
-        'version': 'unknown',
-        'target': null,
-        'activeIp': null,
-        'settings': {'s': 1},
-        'options': {'o': 2},
-        'config': {'c': 3},
-      }));
+      expect(config.settings.domain, 1);
+      expect(config.toJson()['settings']['domain'], 1);
     });
   });
 }
