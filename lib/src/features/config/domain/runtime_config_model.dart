@@ -1,10 +1,17 @@
+import 'package:binary/binary.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../utils/frequency_validator.dart';
 
 part 'runtime_config_model.freezed.dart';
 part 'runtime_config_model.g.dart';
 
 @freezed
 abstract class RuntimeConfig with _$RuntimeConfig {
+  // Required by freezed for extensions that define methods/getters on this class.
+  // Without this, the generated _RuntimeConfig subclass does not forward calls
+  // to extensions, causing NoSuchMethodError at runtime.
+  const RuntimeConfig._();
+
   @JsonSerializable(explicitToJson: true)
   const factory RuntimeConfig({
     @JsonKey(name: 'product_name') String? productName,
@@ -76,4 +83,26 @@ abstract class ElrsConfig with _$ElrsConfig {
 
   factory ElrsConfig.fromJson(Map<String, dynamic> json) =>
       _$ElrsConfigFromJson(json);
+}
+
+extension RuntimeConfigX on RuntimeConfig {
+  /// Returns the active frequency band in MHz (900 or 2400).
+  ///
+  /// Uses bit 7 of [ElrsConfig.modelId] as the authoritative hardware
+  /// capability flag — the same source the device's own WebUI reads.
+  ///
+  /// [freqIndex] is a *domain-list index* within the active band, not a
+  /// band selector, so mapping it to MHz and validating against modelId
+  /// produces spurious throws when the device has not yet set freqIndex
+  /// (it defaults to 0 regardless of band).
+  ///
+  /// Use [FrequencyValidator.getValidatedFrequency] explicitly on the
+  /// write-path (e.g. before saving settings) where strict enforcement
+  /// is appropriate.
+  int get frequencyBand {
+    final rawModelId = config.modelId ?? 0;
+    // Bit 7 of modelId is the 2.4 GHz capability flag (ground truth).
+    final is2G4 = Uint16(rawModelId).nthBit(7);
+    return is2G4 ? 2400 : 900;
+  }
 }

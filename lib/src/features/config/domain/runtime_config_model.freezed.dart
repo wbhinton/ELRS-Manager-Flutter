@@ -241,8 +241,8 @@ return $default(_that.productName,_that.version,_that.target,_that.activeIp,_tha
 /// @nodoc
 
 @JsonSerializable(explicitToJson: true)
-class _RuntimeConfig implements RuntimeConfig {
-  const _RuntimeConfig({@JsonKey(name: 'product_name') this.productName, this.version = 'unknown', this.target, this.activeIp, this.settings = const ElrsSettings(), this.options = const ElrsOptions(), this.config = const ElrsConfig()});
+class _RuntimeConfig extends RuntimeConfig {
+  const _RuntimeConfig({@JsonKey(name: 'product_name') this.productName, this.version = 'unknown', this.target, this.activeIp, this.settings = const ElrsSettings(), this.options = const ElrsOptions(), this.config = const ElrsConfig()}): super._();
   factory _RuntimeConfig.fromJson(Map<String, dynamic> json) => _$RuntimeConfigFromJson(json);
 
 @override@JsonKey(name: 'product_name') final  String? productName;

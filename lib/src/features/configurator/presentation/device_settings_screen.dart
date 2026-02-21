@@ -239,7 +239,7 @@ class _GeneralTabState extends State<_GeneralTab> {
     final options = widget.draft.options;
     final config = widget.draft.config;
 
-    final FrequencyCategory category = _selectedFreq == 0 
+    final FrequencyCategory category = widget.draft.frequencyBand == 900
         ? FrequencyCategory.freq900MHz 
         : FrequencyCategory.freq2400MHz;
 

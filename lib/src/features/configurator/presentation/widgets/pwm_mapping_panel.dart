@@ -66,7 +66,7 @@ class _PwmPinTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Treat raw input as a 16-bit unsigned integer
+    // Treat raw input as a 16-bit unsigned integer using robust extension type constructor.
     final config = Uint16(rawConfig);
 
     // .slice(l, r) extracts bits l through r and right-shifts automatically.

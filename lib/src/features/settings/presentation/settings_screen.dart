@@ -160,26 +160,46 @@ class SettingsScreen extends HookConsumerWidget {
   }
 
   void _submitReport(BuildContext context) async {
-    // Show loading indicator
+    // Track whether user cancelled so we don't pop an already-popped dialog.
+    var _dialogDismissed = false;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (ctx) => AlertDialog(
+        content: const Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Expanded(child: Text('Submitting report…')),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _dialogDismissed = true;
+              Navigator.pop(ctx);
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
     );
 
-    final success = await BugReportService.instance.submitReport(
+    final error = await BugReportService.instance.submitReport(
       'Automated Bug Report',
       'User submitted a debug report from Settings.',
     );
 
-    if (context.mounted) {
-      Navigator.pop(context); // Hide loading
+    if (context.mounted && !_dialogDismissed) {
+      Navigator.pop(context); // Hide loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success 
-            ? 'Report submitted successfully!' 
-            : 'Failed to submit report. Check your connection.'),
-          backgroundColor: success ? Colors.green : Colors.red,
+          content: Text(error == null
+            ? 'Report submitted successfully!'
+            : 'Failed: $error'),
+          backgroundColor: error == null ? Colors.green : Colors.red,
+          duration: const Duration(seconds: 6),
         ),
       );
     }

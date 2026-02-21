@@ -12,15 +12,26 @@ class BugReportService {
   final _logBuffer = Queue<String>();
   static const int _maxLogLines = 200;
 
+  // Whether GhSnitch was initialized with a valid token at startup.
+  // False if the app was launched without --dart-define-from-file.
+  bool _configured = false;
+  bool get isConfigured => _configured;
+
   void init() {
     // 1. Initialize GitHub Snitch with PAT from environment
     const String githubToken = String.fromEnvironment('GITHUB_TOKEN');
     if (githubToken.isNotEmpty) {
-      // GhSnitch uses static methods for initialization in 0.0.18
       GhSnitch.initialize(
         token: githubToken,
-        owner: 'wbhinton', 
-        repo: 'ELRS-Flutter', // Fixed: was repository
+        owner: 'wbhinton',
+        repo: 'ELRS-Mobile',
+      );
+      GhSnitch.listenToExceptions(labels: ['crash', 'auto-report']);
+      _configured = true;
+    } else {
+      Logger.root.warning(
+        'BugReportService: GITHUB_TOKEN not set. '
+        'Launch with --dart-define-from-file=dart_defines/local.json',
       );
     }
 
@@ -35,10 +46,15 @@ class BugReportService {
     });
   }
 
-  Future<bool> submitReport(String title, String description) async {
+  /// Submits a bug report. Returns null on success, or an error string on failure.
+  Future<String?> submitReport(String title, String description) async {
+    if (!_configured) {
+      return 'Bug reporting is not configured. '
+          'Reinstall the app from a release build.';
+    }
     try {
       final metadata = await _collectMetadata();
-      final logs = _logBuffer.toList().reversed.join('\n'); 
+      final logs = _logBuffer.toList().reversed.join('\n');
 
       final body = '''
 ### Description
@@ -53,15 +69,18 @@ $logs
 ```
 ''';
 
-      // GhSnitch uses static report method
-      return await GhSnitch.report(
+      final ok = await GhSnitch.report(
         title: title,
         body: body,
         labels: ['bug', 'user-report'],
+      ).timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => false,
       );
+      return ok ? null : 'GitHub rejected the report (check token permissions or internet connection).';
     } catch (e) {
       Logger.root.severe('Failed to submit bug report: $e');
-      return false;
+      return e.toString();
     }
   }
 
