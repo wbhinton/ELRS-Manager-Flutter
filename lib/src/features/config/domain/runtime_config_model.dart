@@ -29,6 +29,8 @@ abstract class ElrsSettings with _$ElrsSettings {
     String? target,
     @JsonKey(name: 'module-type') String? moduleType,
     @JsonKey(name: 'has_serial_pins') bool? hasSerialPins,
+    @JsonKey(name: 'device_id') int? deviceId,
+    int? domain,
   }) = _ElrsSettings;
 
   factory ElrsSettings.fromJson(Map<String, dynamic> json) =>
@@ -50,6 +52,7 @@ abstract class ElrsOptions with _$ElrsOptions {
     @JsonKey(name: 'lock-on-first-connection') bool? lockOnFirstConnection,
     @JsonKey(name: 'rcvr-uart-baud') int? rcvrUartBaud,
     @JsonKey(name: 'dji-permanently-armed') bool? djiPermanentlyArmed,
+    @JsonKey(name: 'freq-index') int? freqIndex,
     int? domain,
   }) = _ElrsOptions;
 

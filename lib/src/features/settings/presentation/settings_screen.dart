@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/bug_report_service.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends HookConsumerWidget {
@@ -115,9 +116,73 @@ class SettingsScreen extends HookConsumerWidget {
             value: state.expertMode,
             onChanged: (val) => controller.toggleExpertMode(),
           ),
+          
+          if (state.expertMode) ...[
+            const Divider(),
+            ListTile(
+              title: const Text('Submit Debug Report to GitHub'),
+              subtitle: const Text('Help us fix bugs by sharing anonymous system logs'),
+              leading: const Icon(Icons.bug_report, color: Colors.orange),
+              trailing: const Icon(Icons.send),
+              onTap: () => _showPrivacyGuard(context),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  void _showPrivacyGuard(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Privacy Guard'),
+        content: const Text(
+          'This will send your device info and app logs to GitHub for debugging. '
+          'No personal info like Binding Phrases or WiFi passwords will be included. '
+          'Proceed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _submitReport(context);
+            },
+            child: const Text('Proceed'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitReport(BuildContext context) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final success = await BugReportService.instance.submitReport(
+      'Automated Bug Report',
+      'User submitted a debug report from Settings.',
+    );
+
+    if (context.mounted) {
+      Navigator.pop(context); // Hide loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success 
+            ? 'Report submitted successfully!' 
+            : 'Failed to submit report. Check your connection.'),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {

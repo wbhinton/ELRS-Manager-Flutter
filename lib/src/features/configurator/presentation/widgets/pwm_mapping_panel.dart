@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:binary/binary.dart';
+import '../../../../elrs_mappings.dart';
 import '../../../config/domain/elrs_mappings.dart';
 
 /// A widget that renders a list of ExpansionTiles for each PWM pin.
@@ -29,8 +31,18 @@ class PwmMappingPanel extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         ...List.generate(pwmArray.length, (index) {
-          final pinConfig = pwmArray[index] as Map<String, dynamic>;
-          return _PwmPinTile(
+          final item = pwmArray[index];
+          
+          if (item is int) {
+            return _PwmPinTile(
+              pinIndex: index,
+              rawConfig: item,
+              onUpdate: (newVal) => onPinUpdated(index, {'raw': newVal}),
+            );
+          }
+
+          final pinConfig = item as Map<String, dynamic>;
+          return _LegacyPwmPinTile(
             pinIndex: index,
             pinConfig: pinConfig,
             onChanged: (updatedPin) => onPinUpdated(index, updatedPin),
@@ -43,10 +55,50 @@ class PwmMappingPanel extends StatelessWidget {
 
 class _PwmPinTile extends StatelessWidget {
   final int pinIndex;
+  final int rawConfig;
+  final ValueChanged<int> onUpdate;
+
+  const _PwmPinTile({
+    required this.pinIndex,
+    required this.rawConfig,
+    required this.onUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Treat raw input as a 16-bit unsigned integer
+    final config = Uint16(rawConfig);
+
+    // .slice(l, r) extracts bits l through r and right-shifts automatically.
+    // pinFunction: Bits 0-7
+    // outputIndex: Bits 8-15
+    final pinFunction = config.slice(0, 7);
+    final outputIndex = config.slice(8, 15);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      color: const Color(0xFF1E1E1E),
+      child: ListTile(
+        title: Text('Pin ${pinIndex + 1} - Function: ${pinFunction.toBinaryString()}'),
+        subtitle: Text('Output Index: $outputIndex'),
+        trailing: const Icon(Icons.edit),
+        onTap: () {
+          // Example: Update Function (bits 0-7) to a value of 5, 
+          // preserving the Output Index (bits 8-15).
+          final updated = config.replace(0, 7, 5);
+          onUpdate(updated.toInt());
+        },
+      ),
+    );
+  }
+}
+
+class _LegacyPwmPinTile extends StatelessWidget {
+  final int pinIndex;
   final Map<String, dynamic> pinConfig;
   final ValueChanged<Map<String, dynamic>> onChanged;
 
-  const _PwmPinTile({
+  const _LegacyPwmPinTile({
     required this.pinIndex,
     required this.pinConfig,
     required this.onChanged,

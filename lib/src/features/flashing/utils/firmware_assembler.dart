@@ -13,6 +13,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:binary/binary.dart';
 
 class FirmwareAssembler {
   /// Generates the unique user ID (UID) from a binding phrase.
@@ -146,13 +147,17 @@ class FirmwareAssembler {
         print('DEBUG: Warning: Expected more segments but hit end of file.');
         break;
       }
-      // Read 32-bit size (Little Endian)
-      int size = binary[pos + 4] | (binary[pos + 5] << 8) | (binary[pos + 6] << 16) | (binary[pos + 7] << 24);
+      // Read 32-bit size (Little Endian) using Uint32 for performance matching binary v4 specifications.
+      final s0 = Uint32(binary[pos + 4]);
+      final s1 = Uint32(binary[pos + 5]) << 8;
+      final s2 = Uint32(binary[pos + 6]) << 16;
+      final s3 = Uint32(binary[pos + 7]) << 24;
+      final size = (s0 | s1 | s2 | s3).toInt();
       pos += 8 + size;
     }
     
-    // THE FIX: Exact bitwise match to official JS
-    pos = (pos + 16) & ~15; 
+    // THE FIX: Exact bitwise match to official JS using Uint32 for bitwise AND NOT
+    pos = ((Uint32(pos) + Uint32(16)) & Uint32(~15)).toInt(); 
     if (platform.startsWith('esp32')) {
       pos += 32; // Mandatory ESP32 gap
     }

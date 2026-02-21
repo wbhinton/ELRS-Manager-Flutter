@@ -5,6 +5,8 @@ import '../../config/domain/runtime_config_model.dart';
 import '../../config/presentation/config_view_model.dart';
 import '../../config/presentation/device_editor_view_model.dart';
 import '../../config/domain/elrs_mappings.dart';
+import 'package:elrs_mobile/src/elrs_mappings.dart';
+import 'package:binary/binary.dart';
 import 'widgets/pwm_mapping_panel.dart';
 
 class DeviceSettingsScreen extends ConsumerStatefulWidget {
@@ -175,42 +177,75 @@ class _DeviceSettingsScreenState extends ConsumerState<DeviceSettingsScreen> {
 
 class _InfoTab extends StatelessWidget {
   final RuntimeConfig config;
+
   const _InfoTab({required this.config});
 
   @override
   Widget build(BuildContext context) {
-    // Determine the product name from settings or root
-    final productName = config.settings.productName ?? config.productName ?? 'Unknown';
+    // Access settings through the unified config object
+    final settings = config.settings; 
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildInfoTile('Product Name', productName),
-        _buildInfoTile('Firmware Version', config.version),
-        if (config.target != null)
-          _buildInfoTile('Target', config.target),
+        ListTile(
+          title: const Text('Product Name'),
+          subtitle: Text(settings.productName ?? 'Unknown'),
+        ),
+        ListTile(
+          title: const Text('Firmware Version'),
+          subtitle: Text(settings.version ?? 'Unknown'),
+        ),
+        ListTile(
+          title: const Text('Target'),
+          subtitle: Text(settings.target ?? 'Unknown'),
+        ),
+        ListTile(
+          title: const Text('Device ID'),
+          subtitle: Text((settings.deviceId ?? 0).toRadixString(16).toUpperCase()),
+        ),
+        ListTile(
+          title: const Text('Regulatory Domain Index'),
+          subtitle: Text('Index: ${settings.domain ?? 'Unknown'}'),
+        ),
       ],
-    );
-  }
-
-  Widget _buildInfoTile(String title, dynamic subtitle) {
-    return ListTile(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle.toString()),
     );
   }
 }
 
-class _GeneralTab extends StatelessWidget {
+class _GeneralTab extends StatefulWidget {
   final RuntimeConfig draft;
   final DeviceEditorViewModel editor;
 
-  const _GeneralTab({required this.draft, required this.editor});
+  const _GeneralTab({super.key, required this.draft, required this.editor});
+
+  @override
+  State<_GeneralTab> createState() => _GeneralTabState();
+}
+
+class _GeneralTabState extends State<_GeneralTab> {
+  Uint8 _selectedFreq = Uint8.zero;
+  Uint8 _selectedDomain = Uint8.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFreq = Uint8(widget.draft.options.freqIndex ?? 0);
+    _selectedDomain = Uint8(widget.draft.options.domain ?? 0);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final options = draft.options;
-    final config = draft.config;
+    final options = widget.draft.options;
+    final config = widget.draft.config;
+
+    final FrequencyCategory category = _selectedFreq == 0 
+        ? FrequencyCategory.freq900MHz 
+        : FrequencyCategory.freq2400MHz;
+
+    final List<String> currentDomains = category == FrequencyCategory.freq900MHz 
+        ? domains900 
+        : domains2400;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -218,14 +253,44 @@ class _GeneralTab extends StatelessWidget {
         const Text('Hardware Setup', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         
-        // Regulatory Domain
-        if (options.domain != null)
-          _buildDropdown(
-            title: 'Regulatory Domain',
-            value: options.domain!,
-            options: ElrsMappings.domains,
-            onChanged: (val) => editor.updateOption('domain', val),
+        const Text("Frequency Band", style: TextStyle(fontSize: 12)),
+        DropdownButton<int>(
+          value: _selectedFreq.toInt(),
+          items: const [
+            DropdownMenuItem(value: 0, child: Text("900 MHz")),
+            DropdownMenuItem(value: 1, child: Text("2.4 GHz")),
+          ],
+          onChanged: (val) {
+            if (val != null) {
+              setState(() {
+                _selectedFreq = Uint8(val);
+                _selectedDomain = Uint8.zero; // Reset domain on band change
+              });
+              widget.editor.updateOption('freq-index', val);
+              widget.editor.updateOption('domain', 0);
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+        const Text("Regulatory Domain", style: TextStyle(fontSize: 12)),
+        DropdownButton<int>(
+          value: _selectedDomain.toInt(),
+          items: List.generate(
+            currentDomains.length,
+            (i) => DropdownMenuItem(
+              value: i,
+              child: Text(currentDomains[i]),
+            ),
           ),
+          onChanged: (val) {
+            if (val != null) {
+              setState(() => _selectedDomain = Uint8(val));
+              widget.editor.updateOption('domain', val);
+            }
+          },
+        ),
+
+        const SizedBox(height: 24),
 
         // Binding Mode
         if (config.vbind != null)
@@ -233,7 +298,7 @@ class _GeneralTab extends StatelessWidget {
             title: 'Binding Mode (vbind)',
             value: config.vbind!,
             options: ElrsMappings.vbind,
-            onChanged: (val) => editor.updateConfigValue('vbind', val),
+            onChanged: (val) => widget.editor.updateConfigValue('vbind', val),
           ),
 
         // Serial Protocol
@@ -242,7 +307,7 @@ class _GeneralTab extends StatelessWidget {
             title: 'Serial Protocol',
             value: config.serialProtocol!,
             options: ElrsMappings.serialProtocols,
-            onChanged: (val) => editor.updateConfigValue('serial-protocol', val),
+            onChanged: (val) => widget.editor.updateConfigValue('serial-protocol', val),
           ),
 
         // Model ID
@@ -250,7 +315,7 @@ class _GeneralTab extends StatelessWidget {
           _buildTextInput(
             title: 'Model ID',
             value: config.modelId.toString(),
-            onChanged: (val) => editor.updateConfigValue('modelid', int.tryParse(val) ?? config.modelId),
+            onChanged: (val) => widget.editor.updateConfigValue('modelid', int.tryParse(val) ?? config.modelId),
             isNumber: true,
           ),
 
@@ -259,7 +324,7 @@ class _GeneralTab extends StatelessWidget {
           _buildTextInput(
             title: 'UART Baud Rate',
             value: options.rcvrUartBaud.toString(),
-            onChanged: (val) => editor.updateOption('rcvr-uart-baud', int.tryParse(val) ?? options.rcvrUartBaud),
+            onChanged: (val) => widget.editor.updateOption('rcvr-uart-baud', int.tryParse(val) ?? options.rcvrUartBaud),
             isNumber: true,
           ),
 
@@ -271,14 +336,14 @@ class _GeneralTab extends StatelessWidget {
           _buildTextInput(
             title: 'Home WiFi SSID',
             value: options.wifiSsid!,
-            onChanged: (val) => editor.updateOption('wifi-ssid', val),
+            onChanged: (val) => widget.editor.updateOption('wifi-ssid', val),
           ),
 
         if (options.wifiPassword != null)
           _buildTextInput(
             title: 'Home WiFi Password',
             value: options.wifiPassword!,
-            onChanged: (val) => editor.updateOption('wifi-password', val),
+            onChanged: (val) => widget.editor.updateOption('wifi-password', val),
             obscure: true,
           ),
           
@@ -286,7 +351,7 @@ class _GeneralTab extends StatelessWidget {
           const Divider(height: 32),
           PwmMappingPanel(
             pwmArray: config.pwm,
-            onPinUpdated: editor.updatePwmPin,
+            onPinUpdated: widget.editor.updatePwmPin,
           ),
         ],
       ],
