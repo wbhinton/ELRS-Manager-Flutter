@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/storage/persistence_service.dart';
 
 part 'settings_controller.freezed.dart';
 part 'settings_controller.g.dart';
@@ -12,6 +13,9 @@ abstract class SettingsState with _$SettingsState {
     @Default(false) bool developerMode,
     @Default(false) bool forceMobileData,
     @Default(0) int defaultRegulatoryDomain, // 0: FCC, 1: EU, etc.
+    @Default('') String globalBindPhrase,
+    @Default('') String homeWifiSsid,
+    @Default('') String homeWifiPassword,
     @Default(2) int maxCachedVersions,
     @Default(false) bool expertMode,
     @Default('Unknown') String appVersion,
@@ -28,11 +32,15 @@ class SettingsController extends _$SettingsController {
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final info = await PackageInfo.fromPlatform();
+    final persistence = await ref.read(persistenceServiceProvider.future);
     
     state = state.copyWith(
       developerMode: prefs.getBool('developerMode') ?? false,
       forceMobileData: prefs.getBool('forceMobileData') ?? false,
-      defaultRegulatoryDomain: prefs.getInt('defaultRegulatoryDomain') ?? 0,
+      defaultRegulatoryDomain: persistence.getRegulatoryDomain(),
+      globalBindPhrase: persistence.getBindPhrase(),
+      homeWifiSsid: persistence.getWifiSsid(),
+      homeWifiPassword: persistence.getWifiPassword(),
       maxCachedVersions: prefs.getInt('maxCachedVersions') ?? 2,
       expertMode: prefs.getBool('expertMode') ?? false,
       appVersion: info.version,
@@ -53,9 +61,27 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<void> setDefaultRegulatoryDomain(int value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('defaultRegulatoryDomain', value);
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setRegulatoryDomain(value);
     state = state.copyWith(defaultRegulatoryDomain: value);
+  }
+
+  Future<void> setGlobalBindPhrase(String value) async {
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setBindPhrase(value);
+    state = state.copyWith(globalBindPhrase: value);
+  }
+
+  Future<void> setHomeWifiSsid(String value) async {
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setWifiSsid(value);
+    state = state.copyWith(homeWifiSsid: value);
+  }
+
+  Future<void> setHomeWifiPassword(String value) async {
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setWifiPassword(value);
+    state = state.copyWith(homeWifiPassword: value);
   }
 
   Future<void> setMaxCachedVersions(int value) async {

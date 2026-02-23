@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/networking/connection_repository.dart';
 import '../../../core/networking/device_dio.dart';
 import '../../../core/networking/discovery_service.dart';
-import '../../../core/storage/secure_storage_service.dart';
+import '../../../core/storage/persistence_service.dart';
 import '../../flashing/state/flashing_provider.dart';
 import '../domain/runtime_config_model.dart';
 import '../services/device_config_service.dart';
@@ -34,8 +34,8 @@ class ConfigViewModel extends _$ConfigViewModel {
     });
 
     // Load manual IP
-    final storage = ref.read(secureStorageServiceProvider);
-    _manualIp = await storage.loadManualIp();
+    final storage = await ref.read(persistenceServiceProvider.future);
+    _manualIp = storage.loadManualIp();
 
     // Start discovery scan if not started
     final discoveryService = ref.read(discoveryServiceProvider);
@@ -59,7 +59,7 @@ class ConfigViewModel extends _$ConfigViewModel {
 
   Future<void> setManualIp(String ip) async {
     _manualIp = ip;
-    final storage = ref.read(secureStorageServiceProvider);
+    final storage = await ref.read(persistenceServiceProvider.future);
     await storage.saveManualIp(ip);
     
     // Explicitly transition to loading

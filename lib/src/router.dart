@@ -7,7 +7,6 @@ import 'features/settings/presentation/settings_screen.dart';
 import 'features/dashboard/presentation/dashboard_screen.dart';
 import 'features/model_match/presentation/model_match_screen.dart';
 import 'features/pwm_config/presentation/pwm_screen.dart';
-import 'features/backpack/presentation/backpack_screen.dart';
 import 'features/configurator/presentation/device_settings_screen.dart';
 import 'features/firmware_manager/presentation/firmware_manager_screen.dart';
 
@@ -41,10 +40,6 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/pwm_config',
         builder: (context, state) => const PwmScreen(),
-      ),
-      GoRoute(
-        path: '/backpack',
-        builder: (context, state) => const BackpackScreen(),
       ),
       GoRoute(
         path: '/device_config',

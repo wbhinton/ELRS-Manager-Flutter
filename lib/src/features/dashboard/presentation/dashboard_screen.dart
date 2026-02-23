@@ -10,7 +10,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ELRS Command'),
+        title: const Text('ELRS Mobile'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -34,12 +34,6 @@ class DashboardScreen extends StatelessWidget {
                 icon: Icons.build,
                 color: Colors.blue,
                 onTap: () => context.push('/device_config'),
-              ),
-              DashboardCard(
-                title: 'Backpack',
-                icon: Icons.videocam,
-                color: Colors.deepPurple,
-                onTap: () => context.push('/backpack'),
               ),
               DashboardCard(
                 title: 'Firmware Manager',

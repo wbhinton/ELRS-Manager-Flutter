@@ -9,40 +9,51 @@ import 'package:elrs_mobile/src/features/flashing/application/firmware_patcher.d
 import 'package:elrs_mobile/src/features/flashing/presentation/flashing_controller.dart';
 import 'package:elrs_mobile/src/features/flashing/domain/target_definition.dart';
 import 'package:elrs_mobile/src/features/flashing/domain/patch_configuration.dart';
-import 'package:elrs_mobile/src/core/storage/secure_storage_service.dart';
+import 'package:elrs_mobile/src/core/storage/persistence_service.dart';
 import 'package:elrs_mobile/src/core/storage/firmware_cache_service.dart';
+import 'package:elrs_mobile/src/core/networking/connectivity_service.dart';
 
 // 1. Define Mocks
 class MockFirmwareRepository extends Mock implements FirmwareRepository {}
 class MockDeviceRepository extends Mock implements DeviceRepository {}
 class MockFirmwarePatcher extends Mock implements FirmwarePatcher {}
-class MockSecureStorageService extends Mock implements SecureStorageService {}
+class MockPersistenceService extends Mock implements PersistenceService {}
 class MockFirmwareCacheService extends Mock implements FirmwareCacheService {}
+class MockConnectivityService extends Mock implements ConnectivityService {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late MockFirmwareRepository mockFirmwareRepo;
   late MockDeviceRepository mockDeviceRepo;
   late MockFirmwarePatcher mockPatcher;
-  late MockSecureStorageService mockStorage;
+  late MockPersistenceService mockStorage;
   late MockFirmwareCacheService mockCache;
+  late MockConnectivityService mockConnectivity;
 
   setUp(() {
     mockFirmwareRepo = MockFirmwareRepository();
     mockDeviceRepo = MockDeviceRepository();
     mockPatcher = MockFirmwarePatcher();
-    mockStorage = MockSecureStorageService();
+    mockStorage = MockPersistenceService();
     mockCache = MockFirmwareCacheService();
+    mockConnectivity = MockConnectivityService();
+    
+    when(() => mockConnectivity.unbind()).thenAnswer((_) async => {});
+    when(() => mockConnectivity.autoBindIfWiFi()).thenAnswer((_) async => {});
+    when(() => mockConnectivity.build()).thenAnswer((_) => const Stream.empty());
     
     when(() => mockCache.getZipFile(any())).thenAnswer((_) async => null);
     
     // Default stubs for storage to avoid errors during controller init/save
-    when(() => mockStorage.loadOptions()).thenAnswer((_) async => {});
-    when(() => mockStorage.saveOptions(
-      bindPhrase: any(named: 'bindPhrase'),
-      wifiSsid: any(named: 'wifiSsid'),
-      wifiPassword: any(named: 'wifiPassword'),
-      regulatoryDomain: any(named: 'regulatoryDomain'),
-    )).thenAnswer((_) async => {}); // Future<void>
+    when(() => mockStorage.getBindPhrase()).thenReturn('');
+    when(() => mockStorage.getWifiSsid()).thenReturn('');
+    when(() => mockStorage.getWifiPassword()).thenReturn('');
+    when(() => mockStorage.getRegulatoryDomain()).thenReturn(0);
+    
+    when(() => mockStorage.setBindPhrase(any())).thenAnswer((_) async {});
+    when(() => mockStorage.setWifiSsid(any())).thenAnswer((_) async {});
+    when(() => mockStorage.setWifiPassword(any())).thenAnswer((_) async {});
+    when(() => mockStorage.setRegulatoryDomain(any())).thenAnswer((_) async {});
 
     // Register fallback values if needed for 'any()'
     registerFallbackValue(PatchConfiguration(bindPhrase: '', wifiSsid: '', wifiPassword: '', regulatoryDomain: 0));
@@ -82,13 +93,15 @@ void main() {
         firmwareRepositoryProvider.overrideWith((ref) => mockFirmwareRepo),
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
-        secureStorageServiceProvider.overrideWith((ref) => mockStorage),
+        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
         firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
+        connectivityServiceProvider.overrideWith(() => mockConnectivity),
       ],
     );
     addTearDown(container.dispose);
 
     // Act: Initialize Controller
+    final subscription = container.listen(flashingControllerProvider, (_, __) {});
     final controller = container.read(flashingControllerProvider.notifier);
     
     // Set preconditions (Target + Bind Phrase)
@@ -99,7 +112,7 @@ void main() {
       productCode: 'betafpv_nano_rx', // Add productCode
     ));
     controller.selectVersion('3.3.0');
-    controller.setBindPhrase('my_secret_phrase');
+    await controller.setBindPhrase('my_secret_phrase');
     
     // Trigger Flash
     await controller.flash();
@@ -151,17 +164,19 @@ void main() {
         firmwareRepositoryProvider.overrideWith((ref) => mockFirmwareRepo),
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
-        secureStorageServiceProvider.overrideWith((ref) => mockStorage),
+        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
         firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
+        connectivityServiceProvider.overrideWith(() => mockConnectivity),
       ],
     );
     addTearDown(container.dispose);
 
     // Act
+    final subscription = container.listen(flashingControllerProvider, (_, __) {});
     final controller = container.read(flashingControllerProvider.notifier);
     controller.selectTarget(const TargetDefinition(vendor: 'V', name: 'N', firmware: 'f.bin', productCode: 'f'));
     controller.selectVersion('3.3.0');
-    controller.setBindPhrase('phrase');
+    await controller.setBindPhrase('phrase');
 
     await controller.flash();
 

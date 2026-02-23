@@ -5,7 +5,7 @@ import '../application/firmware_patcher.dart';
 import '../domain/patch_configuration.dart';
 import '../data/firmware_repository.dart';
 import '../data/device_repository.dart';
-import '../../../core/storage/secure_storage_service.dart';
+
 import '../../../core/storage/firmware_cache_service.dart';
 import '../domain/target_definition.dart';
 import '../utils/target_resolver.dart';
@@ -75,29 +75,17 @@ class FlashingController extends _$FlashingController {
 
 
   Future<void> loadSavedOptions() async {
-    // Try to load from PersistenceService first
     final persistence = await ref.read(persistenceServiceProvider.future);
     final bindPhrase = persistence.getBindPhrase();
     final wifiSsid = persistence.getWifiSsid();
     final wifiPassword = persistence.getWifiPassword();
-
-    if (bindPhrase.isNotEmpty || wifiSsid.isNotEmpty || wifiPassword.isNotEmpty) {
-      state = state.copyWith(
-        bindPhrase: bindPhrase,
-        wifiSsid: wifiSsid,
-        wifiPassword: wifiPassword,
-      );
-      return;
-    }
-
-    // Fallback to legacy SecureStorageService if persistence is empty
-    final storage = ref.read(secureStorageServiceProvider);
-    final options = await storage.loadOptions();
+    final regulatoryDomain = persistence.getRegulatoryDomain();
+    
     state = state.copyWith(
-      bindPhrase: options['bindPhrase'] as String,
-      wifiSsid: options['wifiSsid'] as String,
-      wifiPassword: options['wifiPassword'] as String,
-      regulatoryDomain: options['regulatoryDomain'] as int,
+      bindPhrase: bindPhrase,
+      wifiSsid: wifiSsid,
+      wifiPassword: wifiPassword,
+      regulatoryDomain: regulatoryDomain,
     );
   }
 
@@ -122,7 +110,6 @@ class FlashingController extends _$FlashingController {
     final persistence = await ref.read(persistenceServiceProvider.future);
     await persistence.setBindPhrase(value);
     _triggerAutosaveFeedback('bindPhrase');
-    _saveOptionsLegacy();
   }
 
   Future<void> setWifiSsid(String value) async {
@@ -130,7 +117,6 @@ class FlashingController extends _$FlashingController {
     final persistence = await ref.read(persistenceServiceProvider.future);
     await persistence.setWifiSsid(value);
     _triggerAutosaveFeedback('wifiSsid');
-    _saveOptionsLegacy();
   }
 
   Future<void> setWifiPassword(String value) async {
@@ -138,12 +124,12 @@ class FlashingController extends _$FlashingController {
     final persistence = await ref.read(persistenceServiceProvider.future);
     await persistence.setWifiPassword(value);
     _triggerAutosaveFeedback('wifiPassword');
-    _saveOptionsLegacy();
   }
   
-  void setRegulatoryDomain(int value) {
+  Future<void> setRegulatoryDomain(int value) async {
     state = state.copyWith(regulatoryDomain: value);
-    _saveOptionsLegacy();
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setRegulatoryDomain(value);
   }
 
   void _triggerAutosaveFeedback(String field) {
@@ -155,19 +141,7 @@ class FlashingController extends _$FlashingController {
     });
   }
 
-  Future<void> _saveOptionsLegacy() async {
-    final storage = ref.read(secureStorageServiceProvider);
-    // Debounce behavior could be added here, but for now simple save on change
-    // Using a microtask or small delay might be better to avoid hammering storage 
-    // on every keystroke, but usually secure storage is fast enough for input fields.
-    // Ideally we save on focus lost or periodic, but direct save is simplest for now.
-    await storage.saveOptions(
-      bindPhrase: state.bindPhrase,
-      wifiSsid: state.wifiSsid,
-      wifiPassword: state.wifiPassword,
-      regulatoryDomain: state.regulatoryDomain,
-    );
-  }
+
 
   Future<void> downloadFirmware() async {
     if (state.selectedTarget == null || state.selectedVersion == null) {

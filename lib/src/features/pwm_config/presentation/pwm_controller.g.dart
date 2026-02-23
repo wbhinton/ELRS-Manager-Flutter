@@ -41,7 +41,7 @@ final class PwmControllerProvider
   }
 }
 
-String _$pwmControllerHash() => r'2103ba7bb609084f419da9713aee97e413549d86';
+String _$pwmControllerHash() => r'4fb5c01f10bdb6e0344334f8a22cc31bc3230034';
 
 abstract class _$PwmController extends $Notifier<PwmState> {
   PwmState build();

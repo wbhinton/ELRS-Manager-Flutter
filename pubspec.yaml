@@ -43,7 +43,6 @@ dependencies:
   json_annotation: ^4.10.0
   dio: ^5.9.1
   connectivity_plus: ^6.1.1
-  flutter_secure_storage: ^10.0.0
   nsd: ^4.1.0
   binary: ^4.0.0
   crypto: ^3.0.7
