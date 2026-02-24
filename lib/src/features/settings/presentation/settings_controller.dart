@@ -12,13 +12,15 @@ abstract class SettingsState with _$SettingsState {
   const factory SettingsState({
     @Default(false) bool developerMode,
     @Default(false) bool forceMobileData,
-    @Default(0) int defaultRegulatoryDomain, // 0: FCC, 1: EU, etc.
+    @Default(0) int defaultRegulatoryDomain,
     @Default('') String globalBindPhrase,
     @Default('') String homeWifiSsid,
     @Default('') String homeWifiPassword,
     @Default(2) int maxCachedVersions,
     @Default(false) bool expertMode,
     @Default('Unknown') String appVersion,
+    @Default(false) bool disclaimerAccepted,
+    @Default(false) bool isLoaded,
   }) = _SettingsState;
 }
 
@@ -33,7 +35,7 @@ class SettingsController extends _$SettingsController {
     final prefs = await SharedPreferences.getInstance();
     final info = await PackageInfo.fromPlatform();
     final persistence = await ref.read(persistenceServiceProvider.future);
-    
+
     state = state.copyWith(
       developerMode: prefs.getBool('developerMode') ?? false,
       forceMobileData: prefs.getBool('forceMobileData') ?? false,
@@ -44,6 +46,8 @@ class SettingsController extends _$SettingsController {
       maxCachedVersions: prefs.getInt('maxCachedVersions') ?? 2,
       expertMode: prefs.getBool('expertMode') ?? false,
       appVersion: info.version,
+      disclaimerAccepted: persistence.hasAcceptedDisclaimer(),
+      isLoaded: true,
     );
   }
 
@@ -95,5 +99,11 @@ class SettingsController extends _$SettingsController {
     final newValue = !state.expertMode;
     await prefs.setBool('expertMode', newValue);
     state = state.copyWith(expertMode: newValue);
+  }
+
+  Future<void> acceptDisclaimer() async {
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setDisclaimerAccepted();
+    state = state.copyWith(disclaimerAccepted: true);
   }
 }

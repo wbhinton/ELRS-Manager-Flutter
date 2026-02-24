@@ -14,8 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsState {
 
- bool get developerMode; bool get forceMobileData; int get defaultRegulatoryDomain;// 0: FCC, 1: EU, etc.
- String get globalBindPhrase; String get homeWifiSsid; String get homeWifiPassword; int get maxCachedVersions; bool get expertMode; String get appVersion;
+ bool get developerMode; bool get forceMobileData; int get defaultRegulatoryDomain; String get globalBindPhrase; String get homeWifiSsid; String get homeWifiPassword; int get maxCachedVersions; bool get expertMode; String get appVersion; bool get disclaimerAccepted; bool get isLoaded;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +25,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.globalBindPhrase, globalBindPhrase) || other.globalBindPhrase == globalBindPhrase)&&(identical(other.homeWifiSsid, homeWifiSsid) || other.homeWifiSsid == homeWifiSsid)&&(identical(other.homeWifiPassword, homeWifiPassword) || other.homeWifiPassword == homeWifiPassword)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.expertMode, expertMode) || other.expertMode == expertMode)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.globalBindPhrase, globalBindPhrase) || other.globalBindPhrase == globalBindPhrase)&&(identical(other.homeWifiSsid, homeWifiSsid) || other.homeWifiSsid == homeWifiSsid)&&(identical(other.homeWifiPassword, homeWifiPassword) || other.homeWifiPassword == homeWifiPassword)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.expertMode, expertMode) || other.expertMode == expertMode)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion)&&(identical(other.disclaimerAccepted, disclaimerAccepted) || other.disclaimerAccepted == disclaimerAccepted)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,globalBindPhrase,homeWifiSsid,homeWifiPassword,maxCachedVersions,expertMode,appVersion);
+int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,globalBindPhrase,homeWifiSsid,homeWifiPassword,maxCachedVersions,expertMode,appVersion,disclaimerAccepted,isLoaded);
 
 @override
 String toString() {
-  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, globalBindPhrase: $globalBindPhrase, homeWifiSsid: $homeWifiSsid, homeWifiPassword: $homeWifiPassword, maxCachedVersions: $maxCachedVersions, expertMode: $expertMode, appVersion: $appVersion)';
+  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, globalBindPhrase: $globalBindPhrase, homeWifiSsid: $homeWifiSsid, homeWifiPassword: $homeWifiPassword, maxCachedVersions: $maxCachedVersions, expertMode: $expertMode, appVersion: $appVersion, disclaimerAccepted: $disclaimerAccepted, isLoaded: $isLoaded)';
 }
 
 
@@ -46,7 +45,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String globalBindPhrase, String homeWifiSsid, String homeWifiPassword, int maxCachedVersions, bool expertMode, String appVersion
+ bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String globalBindPhrase, String homeWifiSsid, String homeWifiPassword, int maxCachedVersions, bool expertMode, String appVersion, bool disclaimerAccepted, bool isLoaded
 });
 
 
@@ -63,7 +62,7 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? globalBindPhrase = null,Object? homeWifiSsid = null,Object? homeWifiPassword = null,Object? maxCachedVersions = null,Object? expertMode = null,Object? appVersion = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? globalBindPhrase = null,Object? homeWifiSsid = null,Object? homeWifiPassword = null,Object? maxCachedVersions = null,Object? expertMode = null,Object? appVersion = null,Object? disclaimerAccepted = null,Object? isLoaded = null,}) {
   return _then(_self.copyWith(
 developerMode: null == developerMode ? _self.developerMode : developerMode // ignore: cast_nullable_to_non_nullable
 as bool,forceMobileData: null == forceMobileData ? _self.forceMobileData : forceMobileData // ignore: cast_nullable_to_non_nullable
@@ -74,7 +73,9 @@ as String,homeWifiPassword: null == homeWifiPassword ? _self.homeWifiPassword : 
 as String,maxCachedVersions: null == maxCachedVersions ? _self.maxCachedVersions : maxCachedVersions // ignore: cast_nullable_to_non_nullable
 as int,expertMode: null == expertMode ? _self.expertMode : expertMode // ignore: cast_nullable_to_non_nullable
 as bool,appVersion: null == appVersion ? _self.appVersion : appVersion // ignore: cast_nullable_to_non_nullable
-as String,
+as String,disclaimerAccepted: null == disclaimerAccepted ? _self.disclaimerAccepted : disclaimerAccepted // ignore: cast_nullable_to_non_nullable
+as bool,isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion,  bool disclaimerAccepted,  bool isLoaded)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion,_that.disclaimerAccepted,_that.isLoaded);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion,  bool disclaimerAccepted,  bool isLoaded)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion,_that.disclaimerAccepted,_that.isLoaded);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool developerMode,  bool forceMobileData,  int defaultRegulatoryDomain,  String globalBindPhrase,  String homeWifiSsid,  String homeWifiPassword,  int maxCachedVersions,  bool expertMode,  String appVersion,  bool disclaimerAccepted,  bool isLoaded)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion);case _:
+return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulatoryDomain,_that.globalBindPhrase,_that.homeWifiSsid,_that.homeWifiPassword,_that.maxCachedVersions,_that.expertMode,_that.appVersion,_that.disclaimerAccepted,_that.isLoaded);case _:
   return null;
 
 }
@@ -215,19 +216,20 @@ return $default(_that.developerMode,_that.forceMobileData,_that.defaultRegulator
 
 
 class _SettingsState implements SettingsState {
-  const _SettingsState({this.developerMode = false, this.forceMobileData = false, this.defaultRegulatoryDomain = 0, this.globalBindPhrase = '', this.homeWifiSsid = '', this.homeWifiPassword = '', this.maxCachedVersions = 2, this.expertMode = false, this.appVersion = 'Unknown'});
+  const _SettingsState({this.developerMode = false, this.forceMobileData = false, this.defaultRegulatoryDomain = 0, this.globalBindPhrase = '', this.homeWifiSsid = '', this.homeWifiPassword = '', this.maxCachedVersions = 2, this.expertMode = false, this.appVersion = 'Unknown', this.disclaimerAccepted = false, this.isLoaded = false});
   
 
 @override@JsonKey() final  bool developerMode;
 @override@JsonKey() final  bool forceMobileData;
 @override@JsonKey() final  int defaultRegulatoryDomain;
-// 0: FCC, 1: EU, etc.
 @override@JsonKey() final  String globalBindPhrase;
 @override@JsonKey() final  String homeWifiSsid;
 @override@JsonKey() final  String homeWifiPassword;
 @override@JsonKey() final  int maxCachedVersions;
 @override@JsonKey() final  bool expertMode;
 @override@JsonKey() final  String appVersion;
+@override@JsonKey() final  bool disclaimerAccepted;
+@override@JsonKey() final  bool isLoaded;
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +241,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.globalBindPhrase, globalBindPhrase) || other.globalBindPhrase == globalBindPhrase)&&(identical(other.homeWifiSsid, homeWifiSsid) || other.homeWifiSsid == homeWifiSsid)&&(identical(other.homeWifiPassword, homeWifiPassword) || other.homeWifiPassword == homeWifiPassword)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.expertMode, expertMode) || other.expertMode == expertMode)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.developerMode, developerMode) || other.developerMode == developerMode)&&(identical(other.forceMobileData, forceMobileData) || other.forceMobileData == forceMobileData)&&(identical(other.defaultRegulatoryDomain, defaultRegulatoryDomain) || other.defaultRegulatoryDomain == defaultRegulatoryDomain)&&(identical(other.globalBindPhrase, globalBindPhrase) || other.globalBindPhrase == globalBindPhrase)&&(identical(other.homeWifiSsid, homeWifiSsid) || other.homeWifiSsid == homeWifiSsid)&&(identical(other.homeWifiPassword, homeWifiPassword) || other.homeWifiPassword == homeWifiPassword)&&(identical(other.maxCachedVersions, maxCachedVersions) || other.maxCachedVersions == maxCachedVersions)&&(identical(other.expertMode, expertMode) || other.expertMode == expertMode)&&(identical(other.appVersion, appVersion) || other.appVersion == appVersion)&&(identical(other.disclaimerAccepted, disclaimerAccepted) || other.disclaimerAccepted == disclaimerAccepted)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,globalBindPhrase,homeWifiSsid,homeWifiPassword,maxCachedVersions,expertMode,appVersion);
+int get hashCode => Object.hash(runtimeType,developerMode,forceMobileData,defaultRegulatoryDomain,globalBindPhrase,homeWifiSsid,homeWifiPassword,maxCachedVersions,expertMode,appVersion,disclaimerAccepted,isLoaded);
 
 @override
 String toString() {
-  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, globalBindPhrase: $globalBindPhrase, homeWifiSsid: $homeWifiSsid, homeWifiPassword: $homeWifiPassword, maxCachedVersions: $maxCachedVersions, expertMode: $expertMode, appVersion: $appVersion)';
+  return 'SettingsState(developerMode: $developerMode, forceMobileData: $forceMobileData, defaultRegulatoryDomain: $defaultRegulatoryDomain, globalBindPhrase: $globalBindPhrase, homeWifiSsid: $homeWifiSsid, homeWifiPassword: $homeWifiPassword, maxCachedVersions: $maxCachedVersions, expertMode: $expertMode, appVersion: $appVersion, disclaimerAccepted: $disclaimerAccepted, isLoaded: $isLoaded)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String globalBindPhrase, String homeWifiSsid, String homeWifiPassword, int maxCachedVersions, bool expertMode, String appVersion
+ bool developerMode, bool forceMobileData, int defaultRegulatoryDomain, String globalBindPhrase, String homeWifiSsid, String homeWifiPassword, int maxCachedVersions, bool expertMode, String appVersion, bool disclaimerAccepted, bool isLoaded
 });
 
 
@@ -276,7 +278,7 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? globalBindPhrase = null,Object? homeWifiSsid = null,Object? homeWifiPassword = null,Object? maxCachedVersions = null,Object? expertMode = null,Object? appVersion = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? developerMode = null,Object? forceMobileData = null,Object? defaultRegulatoryDomain = null,Object? globalBindPhrase = null,Object? homeWifiSsid = null,Object? homeWifiPassword = null,Object? maxCachedVersions = null,Object? expertMode = null,Object? appVersion = null,Object? disclaimerAccepted = null,Object? isLoaded = null,}) {
   return _then(_SettingsState(
 developerMode: null == developerMode ? _self.developerMode : developerMode // ignore: cast_nullable_to_non_nullable
 as bool,forceMobileData: null == forceMobileData ? _self.forceMobileData : forceMobileData // ignore: cast_nullable_to_non_nullable
@@ -287,7 +289,9 @@ as String,homeWifiPassword: null == homeWifiPassword ? _self.homeWifiPassword : 
 as String,maxCachedVersions: null == maxCachedVersions ? _self.maxCachedVersions : maxCachedVersions // ignore: cast_nullable_to_non_nullable
 as int,expertMode: null == expertMode ? _self.expertMode : expertMode // ignore: cast_nullable_to_non_nullable
 as bool,appVersion: null == appVersion ? _self.appVersion : appVersion // ignore: cast_nullable_to_non_nullable
-as String,
+as String,disclaimerAccepted: null == disclaimerAccepted ? _self.disclaimerAccepted : disclaimerAccepted // ignore: cast_nullable_to_non_nullable
+as bool,isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

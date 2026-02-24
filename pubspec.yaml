@@ -58,6 +58,8 @@ dependencies:
   device_info_plus: ^11.1.2
   webview_flutter: ^4.13.1
   sentry_flutter: ^8.11.0
+  wakelock_plus: ^1.4.0
+  flutter_svg: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -91,6 +93,7 @@ flutter:
 
   assets:
     - icons/elrs_mobile.png
+    - icons/elrs_mobile_foreground.svg
   
 dependency_overrides:
   http: ^1.6.0

@@ -11,15 +11,37 @@ import 'package:elrs_mobile/src/features/flashing/domain/target_definition.dart'
 import 'package:elrs_mobile/src/features/flashing/domain/patch_configuration.dart';
 import 'package:elrs_mobile/src/core/storage/persistence_service.dart';
 import 'package:elrs_mobile/src/core/storage/firmware_cache_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:elrs_mobile/src/core/networking/connectivity_service.dart';
 
 // 1. Define Mocks
 class MockFirmwareRepository extends Mock implements FirmwareRepository {}
+
 class MockDeviceRepository extends Mock implements DeviceRepository {}
+
 class MockFirmwarePatcher extends Mock implements FirmwarePatcher {}
+
 class MockPersistenceService extends Mock implements PersistenceService {}
+
 class MockFirmwareCacheService extends Mock implements FirmwareCacheService {}
-class MockConnectivityService extends Mock implements ConnectivityService {}
+
+// ConnectivityService extends a Riverpod-generated base class that has an
+// internal `_element` getter. mocktail's `implements` pattern doesn't inherit
+// that getter, causing Riverpod to crash when wiring the notifier. Using a
+// concrete subclass correctly inherits all generated machinery.
+class FakeConnectivityService extends ConnectivityService {
+  @override
+  Stream<List<ConnectivityResult>> build() => const Stream.empty();
+
+  @override
+  Future<void> bindToWiFi() async {}
+
+  @override
+  Future<void> unbind() async {}
+
+  @override
+  Future<void> autoBindIfWiFi() async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +50,21 @@ void main() {
   late MockFirmwarePatcher mockPatcher;
   late MockPersistenceService mockStorage;
   late MockFirmwareCacheService mockCache;
-  late MockConnectivityService mockConnectivity;
+
+  setUpAll(() {
+    // Register fallback values once for the whole test suite.
+    // Putting these in setUp causes mocktail matcher state to accumulate
+    // across tests, which can cause the second test to fail.
+    registerFallbackValue(
+      PatchConfiguration(
+        bindPhrase: '',
+        wifiSsid: '',
+        wifiPassword: '',
+        regulatoryDomain: 0,
+      ),
+    );
+    registerFallbackValue(Uint8List(0));
+  });
 
   setUp(() {
     mockFirmwareRepo = MockFirmwareRepository();
@@ -36,56 +72,57 @@ void main() {
     mockPatcher = MockFirmwarePatcher();
     mockStorage = MockPersistenceService();
     mockCache = MockFirmwareCacheService();
-    mockConnectivity = MockConnectivityService();
-    
-    when(() => mockConnectivity.unbind()).thenAnswer((_) async => {});
-    when(() => mockConnectivity.autoBindIfWiFi()).thenAnswer((_) async => {});
-    when(() => mockConnectivity.build()).thenAnswer((_) => const Stream.empty());
-    
+
     when(() => mockCache.getZipFile(any())).thenAnswer((_) async => null);
-    
+
     // Default stubs for storage to avoid errors during controller init/save
     when(() => mockStorage.getBindPhrase()).thenReturn('');
     when(() => mockStorage.getWifiSsid()).thenReturn('');
     when(() => mockStorage.getWifiPassword()).thenReturn('');
     when(() => mockStorage.getRegulatoryDomain()).thenReturn(0);
-    
+
     when(() => mockStorage.setBindPhrase(any())).thenAnswer((_) async {});
     when(() => mockStorage.setWifiSsid(any())).thenAnswer((_) async {});
     when(() => mockStorage.setWifiPassword(any())).thenAnswer((_) async {});
     when(() => mockStorage.setRegulatoryDomain(any())).thenAnswer((_) async {});
-
-    // Register fallback values if needed for 'any()'
-    registerFallbackValue(PatchConfiguration(bindPhrase: '', wifiSsid: '', wifiPassword: '', regulatoryDomain: 0));
-    registerFallbackValue(Uint8List(0));
   });
 
   test('Flash Action completes successfully', () async {
     // 2. Success Scenario
-    
+
     // Stubbing
-    when(() => mockFirmwareRepo.downloadFirmware(
-      any(), 
-      any(), 
-      regulatoryDomain: any(named: 'regulatoryDomain'), 
-      onReceiveProgress: any(named: 'onReceiveProgress')
-    )).thenAnswer((_) async => FirmwareData(bytes: Uint8List.fromList([1, 2, 3]), filename: 'firmware.bin'));
-    
-    when(() => mockPatcher.patchFirmware(any(), any()))
-        .thenAnswer((_) async => Uint8List.fromList([4, 5, 6])); 
-    when(() => mockDeviceRepo.flashFirmware(
-      any(), 
-      any(),
-      onSendProgress: any(named: 'onSendProgress'),
-      productName: any(named: 'productName'),
-      luaName: any(named: 'luaName'),
-      uid: any(named: 'uid'),
-      hardwareLayout: any(named: 'hardwareLayout'),
-      wifiSsid: any(named: 'wifiSsid'),
-      wifiPassword: any(named: 'wifiPassword'),
-      platform: any(named: 'platform'),
-      force: any(named: 'force'),
-    )).thenAnswer((_) async => {});
+    when(
+      () => mockFirmwareRepo.downloadFirmware(
+        any(),
+        any(),
+        regulatoryDomain: any(named: 'regulatoryDomain'),
+        onReceiveProgress: any(named: 'onReceiveProgress'),
+      ),
+    ).thenAnswer(
+      (_) async => FirmwareData(
+        bytes: Uint8List.fromList([1, 2, 3]),
+        filename: 'firmware.bin',
+      ),
+    );
+
+    when(
+      () => mockPatcher.patchFirmware(any(), any()),
+    ).thenAnswer((_) async => Uint8List.fromList([4, 5, 6]));
+    when(
+      () => mockDeviceRepo.flashFirmware(
+        any(),
+        any(),
+        onSendProgress: any(named: 'onSendProgress'),
+        productName: any(named: 'productName'),
+        luaName: any(named: 'luaName'),
+        uid: any(named: 'uid'),
+        hardwareLayout: any(named: 'hardwareLayout'),
+        wifiSsid: any(named: 'wifiSsid'),
+        wifiPassword: any(named: 'wifiPassword'),
+        platform: any(named: 'platform'),
+        force: any(named: 'force'),
+      ),
+    ).thenAnswer((_) async => {});
 
     // Provider Override
     final container = ProviderContainer(
@@ -93,54 +130,67 @@ void main() {
         firmwareRepositoryProvider.overrideWith((ref) => mockFirmwareRepo),
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
-        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
+        persistenceServiceProvider.overrideWith(
+          (ref) => Future.value(mockStorage),
+        ),
         firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
-        connectivityServiceProvider.overrideWith(() => mockConnectivity),
+        connectivityServiceProvider.overrideWith(FakeConnectivityService.new),
       ],
     );
     addTearDown(container.dispose);
 
     // Act: Initialize Controller
-    final subscription = container.listen(flashingControllerProvider, (_, __) {});
+    final subscription = container.listen(
+      flashingControllerProvider,
+      (_, __) {},
+    );
     final controller = container.read(flashingControllerProvider.notifier);
-    
+
     // Set preconditions (Target + Bind Phrase)
-    controller.selectTarget(const TargetDefinition(
-      vendor: 'BetaFPV', 
-      name: 'Nano RX', 
-      firmware: 'betafpv_nano_rx.bin',
-      productCode: 'betafpv_nano_rx', // Add productCode
-    ));
+    controller.selectTarget(
+      const TargetDefinition(
+        vendor: 'BetaFPV',
+        name: 'Nano RX',
+        firmware: 'betafpv_nano_rx.bin',
+        productCode: 'betafpv_nano_rx', // Add productCode
+      ),
+    );
     controller.selectVersion('3.3.0');
     await controller.setBindPhrase('my_secret_phrase');
-    
+
     // Trigger Flash
     await controller.flash();
 
     // Assert
-    verify(() => mockFirmwareRepo.downloadFirmware(
-      any(), // 'betafpv_nano_rx.bin', 
-      any(), // '3.3.0',
-      regulatoryDomain: any(named: 'regulatoryDomain'),
-      onReceiveProgress: any(named: 'onReceiveProgress')
-    )).called(1);
-    verify(() => mockPatcher.patchFirmware(
-      any(that: isA<Uint8List>()), 
-      any(that: isA<PatchConfiguration>()) 
-    )).called(1);
-    verify(() => mockDeviceRepo.flashFirmware(
-      any(), 
-      'firmware.bin',
-      onSendProgress: any(named: 'onSendProgress'),
-      productName: any(named: 'productName'),
-      luaName: any(named: 'luaName'),
-      uid: any(named: 'uid'),
-      hardwareLayout: any(named: 'hardwareLayout'),
-      wifiSsid: any(named: 'wifiSsid'),
-      wifiPassword: any(named: 'wifiPassword'),
-      platform: any(named: 'platform'),
-      force: any(named: 'force'),
-    )).called(1);
+    verify(
+      () => mockFirmwareRepo.downloadFirmware(
+        any(), // 'betafpv_nano_rx.bin',
+        any(), // '3.3.0',
+        regulatoryDomain: any(named: 'regulatoryDomain'),
+        onReceiveProgress: any(named: 'onReceiveProgress'),
+      ),
+    ).called(1);
+    verify(
+      () => mockPatcher.patchFirmware(
+        any(that: isA<Uint8List>()),
+        any(that: isA<PatchConfiguration>()),
+      ),
+    ).called(1);
+    verify(
+      () => mockDeviceRepo.flashFirmware(
+        any(),
+        'firmware.bin',
+        onSendProgress: any(named: 'onSendProgress'),
+        productName: any(named: 'productName'),
+        luaName: any(named: 'luaName'),
+        uid: any(named: 'uid'),
+        hardwareLayout: any(named: 'hardwareLayout'),
+        wifiSsid: any(named: 'wifiSsid'),
+        wifiPassword: any(named: 'wifiPassword'),
+        platform: any(named: 'platform'),
+        force: any(named: 'force'),
+      ),
+    ).called(1);
 
     final state = container.read(flashingControllerProvider);
     expect(state.status, equals(FlashingStatus.success));
@@ -149,14 +199,16 @@ void main() {
 
   test('Flash Action handles download error', () async {
     // 3. Error Scenario
-    
+
     // Stubbing
-    when(() => mockFirmwareRepo.downloadFirmware(
-      any(), 
-      any(),
-      regulatoryDomain: any(named: 'regulatoryDomain'),
-      onReceiveProgress: any(named: 'onReceiveProgress')
-    )).thenThrow(Exception('Network Error'));
+    when(
+      () => mockFirmwareRepo.downloadFirmware(
+        any(),
+        any(),
+        regulatoryDomain: any(named: 'regulatoryDomain'),
+        onReceiveProgress: any(named: 'onReceiveProgress'),
+      ),
+    ).thenThrow(Exception('Network Error'));
 
     // Provider Override
     final container = ProviderContainer(
@@ -164,29 +216,43 @@ void main() {
         firmwareRepositoryProvider.overrideWith((ref) => mockFirmwareRepo),
         deviceRepositoryProvider.overrideWith((ref) => mockDeviceRepo),
         firmwarePatcherProvider.overrideWith((ref) => mockPatcher),
-        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
+        persistenceServiceProvider.overrideWith(
+          (ref) => Future.value(mockStorage),
+        ),
         firmwareCacheServiceProvider.overrideWith((ref) => mockCache),
-        connectivityServiceProvider.overrideWith(() => mockConnectivity),
+        connectivityServiceProvider.overrideWith(FakeConnectivityService.new),
       ],
     );
     addTearDown(container.dispose);
 
     // Act
-    final subscription = container.listen(flashingControllerProvider, (_, __) {});
+    final subscription = container.listen(
+      flashingControllerProvider,
+      (_, __) {},
+    );
     final controller = container.read(flashingControllerProvider.notifier);
-    controller.selectTarget(const TargetDefinition(vendor: 'V', name: 'N', firmware: 'f.bin', productCode: 'f'));
+    controller.selectTarget(
+      const TargetDefinition(
+        vendor: 'V',
+        name: 'N',
+        firmware: 'f.bin',
+        productCode: 'f',
+      ),
+    );
     controller.selectVersion('3.3.0');
     await controller.setBindPhrase('phrase');
 
     await controller.flash();
 
     // Assert
-    verify(() => mockFirmwareRepo.downloadFirmware(
-      any(), 
-      any(),
-      regulatoryDomain: any(named: 'regulatoryDomain'),
-      onReceiveProgress: any(named: 'onReceiveProgress')
-    )).called(1);
+    verify(
+      () => mockFirmwareRepo.downloadFirmware(
+        any(),
+        any(),
+        regulatoryDomain: any(named: 'regulatoryDomain'),
+        onReceiveProgress: any(named: 'onReceiveProgress'),
+      ),
+    ).called(1);
     verifyNever(() => mockPatcher.patchFirmware(any(), any()));
     verifyNever(() => mockDeviceRepo.flashFirmware(any(), any()));
 

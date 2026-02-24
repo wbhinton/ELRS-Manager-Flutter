@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'dart:typed_data';
+
 import '../application/firmware_patcher.dart';
 import '../domain/patch_configuration.dart';
 import '../data/firmware_repository.dart';
@@ -15,6 +16,7 @@ import '../../../core/storage/persistence_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../settings/presentation/settings_controller.dart';
 
@@ -58,21 +60,18 @@ class FlashingController extends _$FlashingController {
   FlashingState build() {
     // Watch settings to react to changes, or just read once?
     // If user changes default in settings, we probably want to update current if it matches old default?
-    // Or just use it for initial value. 
+    // Or just use it for initial value.
     // "pre-filling the Options form".
     // Let's watch it so if they change it in settings, it updates here if not overridden?
-    // But `regulatoryDomain` is part of state. 
+    // But `regulatoryDomain` is part of state.
     // Let's just load it initially.
-    
+
     // Actually, `build` is called when providers change if we watch.
     // We want to initialize with the default.
     final settings = ref.watch(settingsControllerProvider);
-    
-    return FlashingState(
-      regulatoryDomain: settings.defaultRegulatoryDomain,
-    );
-  }
 
+    return FlashingState(regulatoryDomain: settings.defaultRegulatoryDomain);
+  }
 
   Future<void> loadSavedOptions() async {
     final persistence = await ref.read(persistenceServiceProvider.future);
@@ -80,7 +79,7 @@ class FlashingController extends _$FlashingController {
     final wifiSsid = persistence.getWifiSsid();
     final wifiPassword = persistence.getWifiPassword();
     final regulatoryDomain = persistence.getRegulatoryDomain();
-    
+
     state = state.copyWith(
       bindPhrase: bindPhrase,
       wifiSsid: wifiSsid,
@@ -91,10 +90,7 @@ class FlashingController extends _$FlashingController {
 
   void selectVendor(String? vendor) {
     // Reset target when vendor changes
-    state = state.copyWith(
-      selectedVendor: vendor,
-      selectedTarget: null,
-    );
+    state = state.copyWith(selectedVendor: vendor, selectedTarget: null);
   }
 
   void selectTarget(TargetDefinition? target) {
@@ -125,7 +121,7 @@ class FlashingController extends _$FlashingController {
     await persistence.setWifiPassword(value);
     _triggerAutosaveFeedback('wifiPassword');
   }
-  
+
   Future<void> setRegulatoryDomain(int value) async {
     state = state.copyWith(regulatoryDomain: value);
     final persistence = await ref.read(persistenceServiceProvider.future);
@@ -141,11 +137,11 @@ class FlashingController extends _$FlashingController {
     });
   }
 
-
-
   Future<void> downloadFirmware() async {
     if (state.selectedTarget == null || state.selectedVersion == null) {
-      state = state.copyWith(errorMessage: 'Please select a target and version.');
+      state = state.copyWith(
+        errorMessage: 'Please select a target and version.',
+      );
       return;
     }
 
@@ -162,7 +158,7 @@ class FlashingController extends _$FlashingController {
       await connectivity.unbind();
 
       final firmware = await _prepareFirmware();
-      
+
       state = state.copyWith(status: FlashingStatus.patching, progress: 0.5);
 
       final targetName = state.selectedTarget!.name.replaceAll(' ', '_');
@@ -177,12 +173,16 @@ class FlashingController extends _$FlashingController {
       final result = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Firmware Binary',
         fileName: downloadName,
-        bytes: firmware.bytes, // Some platforms (Web) need bytes, others (Mobile) work from dialog
+        bytes: firmware
+            .bytes, // Some platforms (Web) need bytes, others (Mobile) work from dialog
       );
 
       if (result != null) {
-        state = state.copyWith(status: FlashingStatus.downloadSuccess, progress: 1.0);
-        print('Firmware saved successfully to $result');
+        state = state.copyWith(
+          status: FlashingStatus.downloadSuccess,
+          progress: 1.0,
+        );
+        debugPrint('Firmware saved successfully to $result');
       } else {
         // User cancelled
         state = state.copyWith(status: FlashingStatus.idle, progress: 0.0);
@@ -194,62 +194,73 @@ class FlashingController extends _$FlashingController {
         progress: 0.0,
       );
     } finally {
-       // Step C (Cleanup): Delete temporary file
-       if (tempFile != null && await tempFile.exists()) {
-         try {
-           await tempFile.delete();
-         } catch (e) {
-           print('Warning: Failed to cleanup temp file: $e');
-         }
-       }
-       // 2. Re-bind to WiFi to restore local connectivity state
-       await ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
+      // Step C (Cleanup): Delete temporary file
+      if (tempFile != null && await tempFile.exists()) {
+        try {
+          await tempFile.delete();
+        } catch (e) {
+          debugPrint('Warning: Failed to cleanup temp file: $e');
+        }
+      }
+      // 2. Re-bind to WiFi to restore local connectivity state
+      await ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
     }
   }
 
   Future<({Uint8List bytes, String filename})> _prepareFirmware() async {
     FirmwareData firmwareData;
-    
+
     // Check for cached version
     final cacheService = ref.read(firmwareCacheServiceProvider);
     final cachedZip = await cacheService.getZipFile(state.selectedVersion!);
-    
+
     if (cachedZip != null) {
       state = state.copyWith(status: FlashingStatus.downloading, progress: 0.1);
       final zipBytes = await cachedZip.readAsBytes();
-      
-      firmwareData = await ref.read(firmwareRepositoryProvider).extractFirmwareFromZip(
-        zipBytes, 
-        state.selectedTarget!.firmware ?? state.selectedTarget!.productCode ?? 'unknown',
-        regulatoryDomain: state.regulatoryDomain,
-      );
+
+      firmwareData = await ref
+          .read(firmwareRepositoryProvider)
+          .extractFirmwareFromZip(
+            zipBytes,
+            state.selectedTarget!.firmware ??
+                state.selectedTarget!.productCode ??
+                'unknown',
+            regulatoryDomain: state.regulatoryDomain,
+          );
     } else {
-       // Download from Artifactory
-       firmwareData = await ref.read(firmwareRepositoryProvider).downloadFirmware(
-        state.selectedTarget!.firmware ?? state.selectedTarget!.productCode ?? 'unknown',
-        state.selectedVersion!,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-             final progress = (received / total);
-             final overallProgress = (progress * 0.4);
-             state = state.copyWith(progress: overallProgress, status: FlashingStatus.downloading);
-          }
-        },
-        regulatoryDomain: state.regulatoryDomain,
-      );
+      // Download from Artifactory
+      firmwareData = await ref
+          .read(firmwareRepositoryProvider)
+          .downloadFirmware(
+            state.selectedTarget!.firmware ??
+                state.selectedTarget!.productCode ??
+                'unknown',
+            state.selectedVersion!,
+            onReceiveProgress: (received, total) {
+              if (total != -1) {
+                final progress = (received / total);
+                final overallProgress = (progress * 0.4);
+                state = state.copyWith(
+                  progress: overallProgress,
+                  status: FlashingStatus.downloading,
+                );
+              }
+            },
+            regulatoryDomain: state.regulatoryDomain,
+          );
     }
-    
+
     state = state.copyWith(status: FlashingStatus.patching, progress: 0.33);
 
     Uint8List finalBytes;
-    
+
     final targetConfig = state.selectedTarget!.config;
     final isUnified = targetConfig.containsKey('layout_file');
 
     if (firmwareData.filename.endsWith('.gz')) {
-       finalBytes = firmwareData.bytes;
+      finalBytes = firmwareData.bytes;
     } else if (isUnified) {
-       finalBytes = firmwareData.bytes;
+      finalBytes = firmwareData.bytes;
     } else {
       final config = PatchConfiguration(
         bindPhrase: state.bindPhrase,
@@ -257,15 +268,18 @@ class FlashingController extends _$FlashingController {
         wifiPassword: state.wifiPassword,
         regulatoryDomain: state.regulatoryDomain,
       );
-      
+
       final patcher = ref.read(firmwarePatcherProvider);
       finalBytes = await patcher.patchFirmware(firmwareData.bytes, config);
     }
-    
+
     return (bytes: finalBytes, filename: firmwareData.filename);
   }
 
-  Future<void> flash({bool force = false, bool ignoreMissingBindPhrase = false}) async {
+  Future<void> flash({
+    bool force = false,
+    bool ignoreMissingBindPhrase = false,
+  }) async {
     if (state.selectedTarget == null) {
       state = state.copyWith(errorMessage: 'Please select a target device.');
       return;
@@ -274,12 +288,12 @@ class FlashingController extends _$FlashingController {
       state = state.copyWith(errorMessage: 'Please select a firmware version.');
       return;
     }
-    
+
     // Flash Guard: Check binding phrase
     if (state.bindPhrase.isEmpty && !ignoreMissingBindPhrase) {
       final persistence = await ref.read(persistenceServiceProvider.future);
       final savedBindPhrase = persistence.getBindPhrase();
-      
+
       if (savedBindPhrase.isEmpty) {
         state = state.copyWith(
           status: FlashingStatus.error,
@@ -297,7 +311,10 @@ class FlashingController extends _$FlashingController {
       progress: 0.0,
       errorMessage: null,
     );
-    
+
+    // Keep the screen on while flashing — released unconditionally in finally.
+    await WakelockPlus.enable();
+
     // Silence UI heartbeat
     ref.read(isFlashingProvider.notifier).setFlashing(true);
 
@@ -306,11 +323,11 @@ class FlashingController extends _$FlashingController {
 
       // 1. Unbind process to allow firmware download via mobile data if needed
       await connectivity.unbind();
-      
+
       final firmware = await _prepareFirmware();
       final finalBytes = firmware.bytes;
       final filename = firmware.filename;
-      
+
       state = state.copyWith(status: FlashingStatus.uploading, progress: 0.66);
 
       // 2. RE-BIND to WiFi interface to ensure the upload reaches 10.0.0.1
@@ -318,49 +335,53 @@ class FlashingController extends _$FlashingController {
 
       // 3. Upload
       final deviceRepo = ref.read(deviceRepositoryProvider);
-      
+
       // Prepare Unified Builder parameters if applicable
       String? productName;
       String? luaName;
       List<int>? uid;
       Map<String, dynamic>? mergedHardwareLayout;
-      
+
       final targetConfig = state.selectedTarget!.config;
       final isUnified = targetConfig.containsKey('layout_file');
-      
-      if (isUnified) {
-         print('Preparing Target-Aware Build...');
-         try {
-           final cacheService = ref.read(firmwareCacheServiceProvider);
-           // 1. Get Hardware Zip
-           final zipFile = await cacheService.getHardwareZipFile(state.selectedVersion!);
-           if (zipFile == null) throw Exception('Hardware zip not found');
-           
-           final zipBytes = await zipFile.readAsBytes();
-           final archive = ZipDecoder().decodeBytes(zipBytes);
 
-           // 2. Resolve Layout
-           mergedHardwareLayout = TargetResolver.resolveLayout(
-             targetConfig,
-             archive,
-           );
-           
-           productName = targetConfig['product_name'] as String? ?? state.selectedTarget!.name;
-           luaName = targetConfig['lua_name'] as String? ?? 'ELRS';
-           
-           if (state.bindPhrase.isNotEmpty) {
-              uid = FirmwareAssembler.generateUid(state.bindPhrase);
-           } else {
-              uid = FirmwareAssembler.generateUid(''); 
-           }
-         } catch (e) {
-           print('Warning: Failed to prepare unified build data: $e');
-           throw Exception('Failed to prepare Unified Firmware: $e');
-         }
+      if (isUnified) {
+        debugPrint('Preparing Target-Aware Build...');
+        try {
+          final cacheService = ref.read(firmwareCacheServiceProvider);
+          // 1. Get Hardware Zip
+          final zipFile = await cacheService.getHardwareZipFile(
+            state.selectedVersion!,
+          );
+          if (zipFile == null) throw Exception('Hardware zip not found');
+
+          final zipBytes = await zipFile.readAsBytes();
+          final archive = ZipDecoder().decodeBytes(zipBytes);
+
+          // 2. Resolve Layout
+          mergedHardwareLayout = TargetResolver.resolveLayout(
+            targetConfig,
+            archive,
+          );
+
+          productName =
+              targetConfig['product_name'] as String? ??
+              state.selectedTarget!.name;
+          luaName = targetConfig['lua_name'] as String? ?? 'ELRS';
+
+          if (state.bindPhrase.isNotEmpty) {
+            uid = FirmwareAssembler.generateUid(state.bindPhrase);
+          } else {
+            uid = FirmwareAssembler.generateUid('');
+          }
+        } catch (e) {
+          debugPrint('Warning: Failed to prepare unified build data: $e');
+          throw Exception('Failed to prepare Unified Firmware: $e');
+        }
       }
 
       await deviceRepo.flashFirmware(
-        finalBytes, 
+        finalBytes,
         filename,
         productName: productName,
         luaName: luaName,
@@ -371,17 +392,18 @@ class FlashingController extends _$FlashingController {
         platform: state.selectedTarget!.platform,
         force: force,
       );
-      
+
       ref.read(isFlashingProvider.notifier).setFlashing(false);
       state = state.copyWith(status: FlashingStatus.success, progress: 1.0);
     } catch (e) {
       ref.read(isFlashingProvider.notifier).setFlashing(false);
       final errorMsg = e.toString();
-      
+
       if (errorMsg.contains('mismatch')) {
         state = state.copyWith(
           status: FlashingStatus.mismatch,
-          errorMessage: 'Target mismatch detected. Forced update was attempted.',
+          errorMessage:
+              'Target mismatch detected. Forced update was attempted.',
           progress: 0.0,
         );
       } else {
@@ -392,14 +414,17 @@ class FlashingController extends _$FlashingController {
         );
       }
     } finally {
-       // Restore connectivity binding
-       await ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
+      // Restore connectivity binding and release wake lock.
+      await ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
+      await WakelockPlus.disable();
     }
   }
 
-
-
   void resetStatus() {
-    state = state.copyWith(status: FlashingStatus.idle, errorMessage: null, progress: 0.0);
+    state = state.copyWith(
+      status: FlashingStatus.idle,
+      errorMessage: null,
+      progress: 0.0,
+    );
   }
 }

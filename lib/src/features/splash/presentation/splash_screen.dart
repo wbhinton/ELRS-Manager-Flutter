@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -46,7 +47,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildLogo() {
-    return Image.asset('icons/elrs_mobile.png', height: 180, width: 180);
+    return SvgPicture.asset(
+      'icons/elrs_mobile_foreground.svg',
+      height: 180,
+      width: 180,
+    );
   }
 
   @override

@@ -1,5 +1,5 @@
 // Copyright (C) 2026  Weston Hinton [wbhinton@gmail.com]
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -16,15 +16,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'router.dart';
 import 'core/networking/connectivity_service.dart';
+import 'features/settings/presentation/settings_controller.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const ProviderScope(
-      child: _AppContent(),
-    );
+    return const ProviderScope(child: _AppContent());
   }
 }
 
@@ -34,11 +33,14 @@ class _AppContent extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
-    
-    // Automatic Network Binding
+
+    // Automatic Network Binding & Settings Load
     useEffect(() {
       // Run initial check
-      Future.microtask(() => ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi());
+      Future.microtask(() {
+        ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
+        ref.read(settingsControllerProvider.notifier).loadSettings();
+      });
       return null;
     }, []);
 

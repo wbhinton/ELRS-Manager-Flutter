@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'disclaimer_dialog.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends HookConsumerWidget {
@@ -119,9 +120,6 @@ class SettingsScreen extends HookConsumerWidget {
           ListTile(
             title: const Text('App Version'),
             subtitle: Text(state.appVersion),
-            onTap: () {
-              // Easter egg logic could go here
-            },
             leading: const Icon(Icons.info_outline),
           ),
           ListTile(
@@ -135,6 +133,91 @@ class SettingsScreen extends HookConsumerWidget {
             subtitle: const Text('Join the ELRS Discord'),
             leading: const Icon(Icons.chat),
             onTap: () => _launchUrl('https://discord.gg/dS6ReFY'),
+          ),
+          ExpansionTile(
+            leading: const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.amber,
+            ),
+            title: const Text('Disclaimer & Liability'),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              const Text(
+                'ELRS Mobile is provided as-is, without warranty of any kind. '
+                'The developers are not responsible for any damage, data loss, or '
+                'non-functional hardware resulting from the use of this application, '
+                'including but not limited to bricked receivers, transmitters, or '
+                'flight controllers.\n\n'
+                'By using this app you accept full responsibility for your hardware.',
+                style: TextStyle(height: 1.5),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('View Full Disclaimer'),
+                  onPressed: () => showDisclaimerDialog(
+                    context,
+                    ref,
+                    barrierDismissible: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          ExpansionTile(
+            leading: const Icon(
+              Icons.build_circle_outlined,
+              color: Colors.orange,
+            ),
+            title: const Text('Flash Recovery Instructions'),
+            subtitle: const Text('What to do if a flash fails'),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              const Text(
+                'If your device appears unresponsive after a failed flash:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const _RecoveryStep(
+                number: '1',
+                text:
+                    'Hold the BOOT button while plugging in via USB to enter bootloader mode.',
+              ),
+              const _RecoveryStep(
+                number: '2',
+                text:
+                    'Use the ELRS Web Flasher at expresslrs.org/flasher to re-flash over USB/UART.',
+              ),
+              const _RecoveryStep(
+                number: '3',
+                text:
+                    'For WiFi-capable devices, hold BOOT for 60 s to trigger WiFi Hotspot recovery mode.',
+              ),
+              const _RecoveryStep(
+                number: '4',
+                text:
+                    'Join #help on the ELRS Discord — the community can usually recover any device.',
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: const Text('Web Flasher'),
+                    onPressed: () =>
+                        _launchUrl('https://expresslrs.github.io/web-flasher/'),
+                  ),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.chat, size: 16),
+                    label: const Text('Discord'),
+                    onPressed: () => _launchUrl('https://discord.gg/dS6ReFY'),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           if (state.developerMode) ...[
@@ -428,6 +511,39 @@ class SettingsScreen extends HookConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _RecoveryStep extends StatelessWidget {
+  const _RecoveryStep({required this.number, required this.text});
+
+  final String number;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 11,
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Text(
+              number,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text, style: const TextStyle(height: 1.4))),
+        ],
+      ),
     );
   }
 }

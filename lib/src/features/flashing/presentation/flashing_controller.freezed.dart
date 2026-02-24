@@ -12,7 +12,7 @@ part of 'flashing_controller.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$FlashingState {
+mixin _$FlashingState implements DiagnosticableTreeMixin {
 
  String? get selectedVendor; TargetDefinition? get selectedTarget; String? get selectedVersion; FlashingStatus get status; double get progress; String? get errorMessage; String get bindPhrase; String get wifiSsid; String get wifiPassword; int get regulatoryDomain; String? get autosavingField;
 /// Create a copy of FlashingState
@@ -22,6 +22,12 @@ mixin _$FlashingState {
 $FlashingStateCopyWith<FlashingState> get copyWith => _$FlashingStateCopyWithImpl<FlashingState>(this as FlashingState, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'FlashingState'))
+    ..add(DiagnosticsProperty('selectedVendor', selectedVendor))..add(DiagnosticsProperty('selectedTarget', selectedTarget))..add(DiagnosticsProperty('selectedVersion', selectedVersion))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('progress', progress))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('bindPhrase', bindPhrase))..add(DiagnosticsProperty('wifiSsid', wifiSsid))..add(DiagnosticsProperty('wifiPassword', wifiPassword))..add(DiagnosticsProperty('regulatoryDomain', regulatoryDomain))..add(DiagnosticsProperty('autosavingField', autosavingField));
+}
 
 @override
 bool operator ==(Object other) {
@@ -33,7 +39,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,selectedVendor,selectedTarget,selectedVersion,status,progress,errorMessage,bindPhrase,wifiSsid,wifiPassword,regulatoryDomain,autosavingField);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'FlashingState(selectedVendor: $selectedVendor, selectedTarget: $selectedTarget, selectedVersion: $selectedVersion, status: $status, progress: $progress, errorMessage: $errorMessage, bindPhrase: $bindPhrase, wifiSsid: $wifiSsid, wifiPassword: $wifiPassword, regulatoryDomain: $regulatoryDomain, autosavingField: $autosavingField)';
 }
 
@@ -227,7 +233,7 @@ return $default(_that.selectedVendor,_that.selectedTarget,_that.selectedVersion,
 /// @nodoc
 
 
-class _FlashingState implements FlashingState {
+class _FlashingState with DiagnosticableTreeMixin implements FlashingState {
   const _FlashingState({this.selectedVendor, this.selectedTarget, this.selectedVersion, this.status = FlashingStatus.idle, this.progress = 0.0, this.errorMessage, this.bindPhrase = '', this.wifiSsid = '', this.wifiPassword = '', this.regulatoryDomain = 0, this.autosavingField});
   
 
@@ -250,6 +256,12 @@ class _FlashingState implements FlashingState {
 _$FlashingStateCopyWith<_FlashingState> get copyWith => __$FlashingStateCopyWithImpl<_FlashingState>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'FlashingState'))
+    ..add(DiagnosticsProperty('selectedVendor', selectedVendor))..add(DiagnosticsProperty('selectedTarget', selectedTarget))..add(DiagnosticsProperty('selectedVersion', selectedVersion))..add(DiagnosticsProperty('status', status))..add(DiagnosticsProperty('progress', progress))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('bindPhrase', bindPhrase))..add(DiagnosticsProperty('wifiSsid', wifiSsid))..add(DiagnosticsProperty('wifiPassword', wifiPassword))..add(DiagnosticsProperty('regulatoryDomain', regulatoryDomain))..add(DiagnosticsProperty('autosavingField', autosavingField));
+}
 
 @override
 bool operator ==(Object other) {
@@ -261,7 +273,7 @@ bool operator ==(Object other) {
 int get hashCode => Object.hash(runtimeType,selectedVendor,selectedTarget,selectedVersion,status,progress,errorMessage,bindPhrase,wifiSsid,wifiPassword,regulatoryDomain,autosavingField);
 
 @override
-String toString() {
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   return 'FlashingState(selectedVendor: $selectedVendor, selectedTarget: $selectedTarget, selectedVersion: $selectedVersion, status: $status, progress: $progress, errorMessage: $errorMessage, bindPhrase: $bindPhrase, wifiSsid: $wifiSsid, wifiPassword: $wifiPassword, regulatoryDomain: $regulatoryDomain, autosavingField: $autosavingField)';
 }
 

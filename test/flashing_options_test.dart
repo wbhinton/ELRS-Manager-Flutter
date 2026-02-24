@@ -46,6 +46,14 @@ class MockPersistenceService implements PersistenceService {
 
   @override
   String? loadManualIp() => _storage['manualIp'];
+
+  @override
+  bool hasAcceptedDisclaimer() => _storage['disclaimerAccepted'] == 'true';
+
+  @override
+  Future<void> setDisclaimerAccepted() async {
+    _storage['disclaimerAccepted'] = 'true';
+  }
 }
 
 void main() {
@@ -60,13 +68,17 @@ void main() {
 
     final container = ProviderContainer(
       overrides: [
-        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
+        persistenceServiceProvider.overrideWith(
+          (ref) => Future.value(mockStorage),
+        ),
       ],
     );
     addTearDown(container.dispose);
 
     // Act
-    await container.read(flashingControllerProvider.notifier).loadSavedOptions();
+    await container
+        .read(flashingControllerProvider.notifier)
+        .loadSavedOptions();
     final state = container.read(flashingControllerProvider);
 
     // Assert
@@ -82,15 +94,22 @@ void main() {
     final mockStorage = MockPersistenceService();
     final container = ProviderContainer(
       overrides: [
-        persistenceServiceProvider.overrideWith((ref) => Future.value(mockStorage)),
+        persistenceServiceProvider.overrideWith(
+          (ref) => Future.value(mockStorage),
+        ),
       ],
     );
     addTearDown(container.dispose);
 
     // Act
-    final subscription = container.listen(flashingControllerProvider, (_, __) {});
-    await container.read(flashingControllerProvider.notifier).setBindPhrase('new_secret');
-    
+    final subscription = container.listen(
+      flashingControllerProvider,
+      (_, __) {},
+    );
+    await container
+        .read(flashingControllerProvider.notifier)
+        .setBindPhrase('new_secret');
+
     // Assert State
     final state = container.read(flashingControllerProvider);
     expect(state.bindPhrase, equals('new_secret'));
@@ -101,10 +120,10 @@ void main() {
     // But typically un-awaited Futures in tests might need pumping or simple delay.
     // However, MockSecureStorageService methods are async? Yes, Future<void>.
     // So `setBindPhrase` starts a future "fire and forget".
-    
+
     // To properly verify async side-effects that are fire-and-forget, we need to ensure the event loop processes it.
     await Future.delayed(Duration.zero);
-    
+
     final loaded = mockStorage.getBindPhrase();
     expect(loaded, equals('new_secret'));
   });

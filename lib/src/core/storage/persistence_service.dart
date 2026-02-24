@@ -13,6 +13,7 @@ class PersistenceService {
   static const _keyWifiPassword = 'flashing_wifi_password';
   static const _keyRegulatoryDomain = 'defaultRegulatoryDomain';
   static const _keyManualIp = 'manual_ip';
+  static const _keyDisclaimerAccepted = 'disclaimer_accepted';
 
   Future<void> setRegulatoryDomain(int value) async {
     await _prefs.setInt(_keyRegulatoryDomain, value);
@@ -52,6 +53,14 @@ class PersistenceService {
 
   String getWifiPassword() {
     return _prefs.getString(_keyWifiPassword) ?? '';
+  }
+
+  bool hasAcceptedDisclaimer() {
+    return _prefs.getBool(_keyDisclaimerAccepted) ?? false;
+  }
+
+  Future<void> setDisclaimerAccepted() async {
+    await _prefs.setBool(_keyDisclaimerAccepted, true);
   }
 }
 
