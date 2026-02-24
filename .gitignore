@@ -50,3 +50,11 @@ app.*.map.json
 
 # Dart-define secrets (local.json.example IS committed as a template)
 dart_defines/local.json
+
+# Keystores and Secrets
+*.jks
+*.keystore
+*.base64
+elrs-upload.jks
+elrs-upload.base64
+upload-keystore.jks

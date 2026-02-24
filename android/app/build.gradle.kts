@@ -32,7 +32,7 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = project.rootProject.file("app/upload-keystore.jks")
+            val keystoreFile = project.rootProject.file("app/elrs-upload.jks")
             if (keystoreFile.exists()) {
                 storeFile = keystoreFile
                 storePassword = System.getenv("KEYSTORE_PASSWORD")
@@ -44,7 +44,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (project.rootProject.file("app/upload-keystore.jks").exists()) {
+            signingConfig = if (project.rootProject.file("app/elrs-upload.jks").exists()) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
