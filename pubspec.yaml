@@ -60,6 +60,7 @@ dependencies:
   sentry_flutter: ^8.11.0
   wakelock_plus: ^1.4.0
   flutter_svg: ^2.2.3
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

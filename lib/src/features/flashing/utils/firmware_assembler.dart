@@ -1,5 +1,5 @@
 // Copyright (C) 2026  Weston Hinton [wbhinton@gmail.com]
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@ import 'package:binary/binary.dart';
 
 class FirmwareAssembler {
   /// Generates the unique user ID (UID) from a binding phrase.
-  /// 
+  ///
   /// Logic:
   /// 1. Prefix with `-DMY_BINDING_PHRASE="`
   /// 2. MD5 hash the result
@@ -29,9 +29,25 @@ class FirmwareAssembler {
     final input = '-DMY_BINDING_PHRASE="$phrase"';
     final bytes = utf8.encode(input);
     final digest = md5.convert(bytes);
-    
+
     // Extract the first 6 bytes
     return digest.bytes.sublist(0, 6);
+  }
+
+  /// Updates the firmware options map with the validated regulatory domain.
+  static void updateDomainOption(
+    Map<String, dynamic> options,
+    int rawDomainValue,
+  ) {
+    // Use checkRange to throw early if the value exceeds 8-bit limits (0-255).
+    // This prevents the default wrapping behavior of the Uint8 constructor.
+    final domain = Uint8.checkRange(rawDomainValue);
+
+    // Inject into the options map as the fixed-width extension type.
+    options['domain'] = domain;
+
+    // Debugging: Verify the injected domain mask.
+    // print('Injected Domain: ${domain.toBinaryString()}');
   }
 
   /// Assembles the EspUnified Firmware binary.
@@ -52,6 +68,7 @@ class FirmwareAssembler {
     String wifiSsid = '',
     String wifiPassword = '',
     int? flashDiscriminator,
+    int? domain,
   }) {
     final builder = BytesBuilder();
 
@@ -59,8 +76,10 @@ class FirmwareAssembler {
     print('DEBUG: Original Firmware Size: ${firmware.length}');
     final end = _findFirmwareEnd(firmware, platform);
     print('DEBUG: Calculated True End (Surgical): $end');
-    print('DEBUG: Bytes Stripped (Padding + Old Config): ${firmware.length - end}');
-    
+    print(
+      'DEBUG: Bytes Stripped (Padding + Old Config): ${firmware.length - end}',
+    );
+
     final trimmedFirmware = firmware.sublist(0, end);
     builder.add(trimmedFirmware);
 
@@ -76,7 +95,9 @@ class FirmwareAssembler {
     final sanitizedPassword = wifiPassword.trim().replaceAll('\x00', '');
 
     final Map<String, dynamic> finalOptions = {
-      'flash-discriminator': flashDiscriminator ?? Uint32.fromWrapped(DateTime.now().millisecondsSinceEpoch).toInt(),
+      'flash-discriminator':
+          flashDiscriminator ??
+          Uint32.fromWrapped(DateTime.now().millisecondsSinceEpoch).toInt(),
       'uid': uid,
       'wifi-on-interval': 60,
       'rcvr-uart-baud': 420000,
@@ -89,10 +110,16 @@ class FirmwareAssembler {
       finalOptions['wifi-password'] = sanitizedPassword;
     }
 
+    if (domain != null) {
+      updateDomainOption(finalOptions, domain);
+    }
+
     final optionsJson = jsonEncode(finalOptions);
     final optionsBytes = utf8.encode(optionsJson);
     if (optionsBytes.length > 512) {
-      throw Exception('Options JSON exceeds 512 bytes (${optionsBytes.length} bytes).');
+      throw Exception(
+        'Options JSON exceeds 512 bytes (${optionsBytes.length} bytes).',
+      );
     }
     builder.add(_paddedString(optionsJson, 512));
 
@@ -101,11 +128,13 @@ class FirmwareAssembler {
     final layoutJson = jsonEncode(hardwareLayout);
     final minifiedLayout = layoutJson.replaceAll(RegExp(r'\s+'), '');
     final layoutBytes = utf8.encode(minifiedLayout);
-    
+
     if (layoutBytes.length > 2048) {
-      throw Exception('Hardware layout JSON exceeds 2048 bytes (${layoutBytes.length} bytes).');
+      throw Exception(
+        'Hardware layout JSON exceeds 2048 bytes (${layoutBytes.length} bytes).',
+      );
     }
-    
+
     final paddedLayout = Uint8List(2048);
     paddedLayout.setRange(0, layoutBytes.length, layoutBytes);
     builder.add(paddedLayout);
@@ -119,7 +148,7 @@ class FirmwareAssembler {
     if (bytes.length > length) {
       return Uint8List.fromList(bytes.sublist(0, length));
     }
-    
+
     final padded = Uint8List(length);
     padded.setRange(0, bytes.length, bytes);
     return padded;
@@ -132,22 +161,22 @@ class FirmwareAssembler {
   static int _findFirmwareEnd(Uint8List binary, String platform) {
     int pos = 0;
     if (platform == 'esp8285') pos = 0x1000;
-    
+
     // Magic byte check (0xE9)
     if (pos >= binary.length || binary[pos] != 0xE9) {
       print('DEBUG: Magic byte not found, returning full length');
       return binary.length;
     }
-    
+
     int segments = binary[pos + 1];
     pos = platform.startsWith('esp32') ? 24 : 0x1008;
-    
+
     for (int i = 0; i < segments; i++) {
       if (pos + 8 > binary.length) {
         print('DEBUG: Warning: Expected more segments but hit end of file.');
         break;
       }
-      
+
       // Read 32-bit size (Little Endian) using Uint32 constructor (calls fit() internally).
       final s0 = binary[pos + 4];
       final s1 = binary[pos + 5] << 8;
@@ -156,13 +185,13 @@ class FirmwareAssembler {
       final size = Uint32.fromWrapped(s0 | s1 | s2 | s3).toInt();
       pos += 8 + size;
     }
-    
+
     // THE FIX: Exact bitwise match to official JS using Uint32.fromWrapped for robust alignment
-    pos = (Uint32.fromWrapped(pos + 16) & Uint32.fromWrapped(~15)).toInt(); 
+    pos = (Uint32.fromWrapped(pos + 16) & Uint32.fromWrapped(~15)).toInt();
     if (platform.startsWith('esp32')) {
       pos += 32; // Mandatory ESP32 gap
     }
-    
+
     return pos;
   }
 }

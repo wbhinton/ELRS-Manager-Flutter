@@ -9,6 +9,7 @@ abstract class PatchConfiguration with _$PatchConfiguration {
     String? wifiSsid,
     String? wifiPassword,
     int? regulatoryDomain,
+    int? domain,
     List<int>? uid,
   }) = _PatchConfiguration;
 }

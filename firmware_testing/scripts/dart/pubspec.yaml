@@ -1,0 +1,11 @@
+name: elrs_logic_validator
+description: Internal Logic Validator for ExpressLRS firmware assembly.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  binary: ^4.0.0
+  path: ^1.9.0

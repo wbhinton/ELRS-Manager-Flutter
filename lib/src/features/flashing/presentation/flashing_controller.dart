@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:binary/binary.dart';
 
 import '../application/firmware_patcher.dart';
 import '../domain/patch_configuration.dart';
@@ -50,6 +51,7 @@ abstract class FlashingState with _$FlashingState {
     @Default('') String wifiSsid,
     @Default('') String wifiPassword,
     @Default(0) int regulatoryDomain,
+    @Default(false) bool dualBandEnabled,
     String? autosavingField,
   }) = _FlashingState;
 }
@@ -58,7 +60,24 @@ abstract class FlashingState with _$FlashingState {
 class FlashingController extends _$FlashingController {
   @override
   FlashingState build() {
-    final settings = ref.watch(settingsControllerProvider);
+    // Listen for global settings changes and sync them to local state
+    ref.listen(settingsControllerProvider, (previous, next) {
+      if (previous?.globalBindPhrase != next.globalBindPhrase) {
+        state = state.copyWith(bindPhrase: next.globalBindPhrase);
+      }
+      if (previous?.homeWifiSsid != next.homeWifiSsid) {
+        state = state.copyWith(wifiSsid: next.homeWifiSsid);
+      }
+      if (previous?.homeWifiPassword != next.homeWifiPassword) {
+        state = state.copyWith(wifiPassword: next.homeWifiPassword);
+      }
+      if (previous?.defaultRegulatoryDomain != next.defaultRegulatoryDomain) {
+        state = state.copyWith(regulatoryDomain: next.defaultRegulatoryDomain);
+      }
+    });
+
+    // Initialize with current settings values
+    final settings = ref.read(settingsControllerProvider);
 
     return FlashingState(
       bindPhrase: settings.globalBindPhrase,
@@ -96,6 +115,25 @@ class FlashingController extends _$FlashingController {
     state = state.copyWith(selectedVersion: version);
   }
 
+  /// Corrects the regulatory mapping for dual-band hardware.
+  Uint16 updateRegulatoryMapping({
+    required int currentRegInteger,
+    required int newDomainId,
+    required bool dualBandEnabled,
+  }) {
+    // Wrap existing data in Uint16 to preserve higher-order configuration bits.
+    final currentVal = Uint16(currentRegInteger);
+
+    // 1. Modify: Replace the domain ID (bits 0-3).
+    var updatedVal = currentVal.replace(0, 3, newDomainId);
+
+    // 2. Modify: Inject the Dual-Band toggle flag at bit 7.
+    // This ensures no 'clobbering' of bits 4-6 or 8-15.
+    updatedVal = updatedVal.replace(7, 7, dualBandEnabled ? 1 : 0);
+
+    return updatedVal;
+  }
+
   Future<void> setBindPhrase(String value) async {
     state = state.copyWith(bindPhrase: value);
     final persistence = await ref.read(persistenceServiceProvider.future);
@@ -117,10 +155,29 @@ class FlashingController extends _$FlashingController {
     _triggerAutosaveFeedback('wifiPassword');
   }
 
-  Future<void> setRegulatoryDomain(int value) async {
-    state = state.copyWith(regulatoryDomain: value);
+  Future<void> setRegulatoryDomain(int id) async {
+    final updatedMapping = updateRegulatoryMapping(
+      currentRegInteger: state.regulatoryDomain,
+      newDomainId: id,
+      dualBandEnabled: state.dualBandEnabled,
+    );
+    state = state.copyWith(regulatoryDomain: updatedMapping.toInt());
     final persistence = await ref.read(persistenceServiceProvider.future);
-    await persistence.setRegulatoryDomain(value);
+    await persistence.setRegulatoryDomain(state.regulatoryDomain);
+  }
+
+  Future<void> setDualBandEnabled(bool enabled) async {
+    final updatedMapping = updateRegulatoryMapping(
+      currentRegInteger: state.regulatoryDomain,
+      newDomainId: state.regulatoryDomain & 0xF, // Extract bits 0-3
+      dualBandEnabled: enabled,
+    );
+    state = state.copyWith(
+      dualBandEnabled: enabled,
+      regulatoryDomain: updatedMapping.toInt(),
+    );
+    final persistence = await ref.read(persistenceServiceProvider.future);
+    await persistence.setRegulatoryDomain(state.regulatoryDomain);
   }
 
   void _triggerAutosaveFeedback(String field) {
@@ -385,6 +442,7 @@ class FlashingController extends _$FlashingController {
         wifiSsid: state.wifiSsid,
         wifiPassword: state.wifiPassword,
         platform: state.selectedTarget!.platform,
+        domain: state.regulatoryDomain,
         force: force,
       );
 

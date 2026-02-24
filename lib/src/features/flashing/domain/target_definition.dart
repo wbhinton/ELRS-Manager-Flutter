@@ -5,6 +5,27 @@ part 'target_definition.g.dart';
 
 @freezed
 abstract class TargetDefinition with _$TargetDefinition {
+  bool get is900Mhz =>
+      name.contains('900') ||
+      (firmware?.contains('900') ?? false) ||
+      (productCode?.contains('900') ?? false);
+
+  bool get is2400Mhz =>
+      name.contains('2400') ||
+      name.contains('2.4') ||
+      (firmware?.contains('2400') ?? false) ||
+      (firmware?.contains('2.4') ?? false) ||
+      (productCode?.contains('2400') ?? false) ||
+      (productCode?.contains('2.4') ?? false);
+
+  bool get isDualBand =>
+      (name.toLowerCase().contains('dual')) ||
+      (firmware?.toLowerCase().contains('dual') ?? false) ||
+      (productCode?.toLowerCase().contains('dual') ?? false) ||
+      (is900Mhz && is2400Mhz);
+
+  const TargetDefinition._();
+
   const factory TargetDefinition({
     /// Manufacturer/Vendor name (e.g., "HappyModel")
     required String vendor,
@@ -16,13 +37,13 @@ abstract class TargetDefinition with _$TargetDefinition {
     @JsonKey(name: 'product_code') String? productCode,
 
     /// Firmware target identifier
-    /// Note: This can be a String or nested object in some cases, 
+    /// Note: This can be a String or nested object in some cases,
     /// but for now we map it as a String if it exists.
     String? firmware,
 
     /// Configuration map containing 'serial_rx', 'serial_tx', etc.
     @Default({}) Map<String, dynamic> config,
-    
+
     /// Target architecture platform (e.g., "esp8285", "esp32", "esp32-s3")
     String? platform,
 

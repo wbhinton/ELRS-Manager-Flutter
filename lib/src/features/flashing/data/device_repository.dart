@@ -103,6 +103,7 @@ class DeviceRepository {
     String? wifiSsid,
     String? wifiPassword,
     String? platform,
+    int? domain,
     bool force = false,
   }) async {
     try {
@@ -125,6 +126,7 @@ class DeviceRepository {
           platform: platform,
           wifiSsid: wifiSsid ?? '',
           wifiPassword: wifiPassword ?? '',
+          domain: domain,
         );
         // Unified firmware is always a .bin before compression
         filenameToUpload = filename.endsWith('.gz')

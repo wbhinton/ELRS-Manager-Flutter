@@ -19,7 +19,7 @@ mixin _$TargetDefinition {
  String get vendor;/// Human-readble name (e.g., "HappyModel ES24TX 2.4GHz TX")
  String get name;/// Product code used for identification
 @JsonKey(name: 'product_code') String? get productCode;/// Firmware target identifier
-/// Note: This can be a String or nested object in some cases, 
+/// Note: This can be a String or nested object in some cases,
 /// but for now we map it as a String if it exists.
  String? get firmware;/// Configuration map containing 'serial_rx', 'serial_tx', etc.
  Map<String, dynamic> get config;/// Target architecture platform (e.g., "esp8285", "esp32", "esp32-s3")
@@ -224,8 +224,8 @@ return $default(_that.vendor,_that.name,_that.productCode,_that.firmware,_that.c
 /// @nodoc
 @JsonSerializable()
 
-class _TargetDefinition implements TargetDefinition {
-  const _TargetDefinition({required this.vendor, required this.name, @JsonKey(name: 'product_code') this.productCode, this.firmware, final  Map<String, dynamic> config = const {}, this.platform, final  List<String> upload_methods = const [], final  List<String> options = const []}): _config = config,_upload_methods = upload_methods,_options = options;
+class _TargetDefinition extends TargetDefinition {
+  const _TargetDefinition({required this.vendor, required this.name, @JsonKey(name: 'product_code') this.productCode, this.firmware, final  Map<String, dynamic> config = const {}, this.platform, final  List<String> upload_methods = const [], final  List<String> options = const []}): _config = config,_upload_methods = upload_methods,_options = options,super._();
   factory _TargetDefinition.fromJson(Map<String, dynamic> json) => _$TargetDefinitionFromJson(json);
 
 /// Manufacturer/Vendor name (e.g., "HappyModel")
@@ -235,7 +235,7 @@ class _TargetDefinition implements TargetDefinition {
 /// Product code used for identification
 @override@JsonKey(name: 'product_code') final  String? productCode;
 /// Firmware target identifier
-/// Note: This can be a String or nested object in some cases, 
+/// Note: This can be a String or nested object in some cases,
 /// but for now we map it as a String if it exists.
 @override final  String? firmware;
 /// Configuration map containing 'serial_rx', 'serial_tx', etc.
