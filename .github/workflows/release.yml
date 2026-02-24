@@ -69,7 +69,7 @@ jobs:
           ESCAPED_CONTENT=$(echo "$JSON_CONTENT" | jq -aRs .)
 
           # Update Gist using GitHub API
-          curl -L \
+          curl -sfSL \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GIST_TOKEN }}" \
