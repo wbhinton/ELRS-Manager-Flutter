@@ -1,5 +1,5 @@
 // Copyright (C) 2026  Weston Hinton [wbhinton@gmail.com]
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -10,10 +10,9 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
+
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,9 +31,8 @@ DeviceRepository deviceRepository(Ref ref) {
 
 class DeviceRepository {
   final Dio _dio;
-  final http.Client? _httpClient;
 
-  DeviceRepository(this._dio, {http.Client? httpClient}) : _httpClient = httpClient;
+  DeviceRepository(this._dio);
 
   Dio get dio => _dio;
 
@@ -54,10 +52,7 @@ class DeviceRepository {
   Future<void> updateBindingPhrase(String phrase) async {
     try {
       final uid = FirmwareAssembler.generateUid(phrase);
-      await _dio.post(
-        '/config',
-        data: {'uid': uid},
-      );
+      await _dio.post('/config', data: {'uid': uid});
     } catch (e) {
       throw Exception('Failed to update binding phrase: $e');
     }
@@ -69,10 +64,7 @@ class DeviceRepository {
     try {
       await _dio.post(
         '/config',
-        data: {
-          'wifi-ssid': ssid,
-          'wifi-password': password,
-        },
+        data: {'wifi-ssid': ssid, 'wifi-password': password},
       );
     } catch (e) {
       throw Exception('Failed to update WiFi: $e');
@@ -95,7 +87,7 @@ class DeviceRepository {
   ///
   /// [firmwareData] is the binary data of the firmware file.
   /// [onSendProgress] is an optional callback for upload progress.
-  /// 
+  ///
   /// Optional parameters for Unified Firmware Building (ESP only):
   /// [productName], [luaName], [uid], [hardwareLayout], [wifiSsid], [wifiPassword].
   /// If [hardwareLayout] is provided, the firmware will be built using UnifiedFirmwareBuilder.
@@ -118,7 +110,11 @@ class DeviceRepository {
       String filenameToUpload;
 
       // Check if Unified Building is requested/possible
-      if (hardwareLayout != null && productName != null && luaName != null && uid != null && platform != null) {
+      if (hardwareLayout != null &&
+          productName != null &&
+          luaName != null &&
+          uid != null &&
+          platform != null) {
         print('Building Unified Firmware for $productName ($platform)...');
         dataToUpload = FirmwareAssembler.assembleEspUnified(
           firmware: firmwareData,
@@ -131,23 +127,26 @@ class DeviceRepository {
           wifiPassword: wifiPassword ?? '',
         );
         // Unified firmware is always a .bin before compression
-        filenameToUpload = filename.endsWith('.gz') ? filename.substring(0, filename.length - 3) : filename;
+        filenameToUpload = filename.endsWith('.gz')
+            ? filename.substring(0, filename.length - 3)
+            : filename;
         if (!filenameToUpload.endsWith('.bin')) filenameToUpload += '.bin';
-        
+
         print('Unified Firmware Built. Size: ${dataToUpload.length} bytes');
-        
+
         // --- FORENSIC DEBUG: Save to Documents Directory ---
         try {
           final directory = await getApplicationDocumentsDirectory();
           final debugFile = File('${directory.path}/generated_er8.bin');
           await debugFile.writeAsBytes(dataToUpload);
           print('I/flutter: DEBUG: Firmware saved to: ${debugFile.path}');
-          print('I/flutter: TIP: Run \'open "${directory.path}"\' in your terminal to see the file.');
+          print(
+            'I/flutter: TIP: Run \'open "${directory.path}"\' in your terminal to see the file.',
+          );
         } catch (e) {
           print('Warning: Failed to save debug firmware file: $e');
         }
         // --------------------------------------------------
-
       } else {
         dataToUpload = firmwareData;
         filenameToUpload = filename;
@@ -165,7 +164,10 @@ class DeviceRepository {
       } else if (platform != null && platform.startsWith('esp32')) {
         print('Using raw bytes for ESP32 ($platform)');
         if (filenameToUpload.endsWith('.gz')) {
-           filenameToUpload = filenameToUpload.substring(0, filenameToUpload.length - 3);
+          filenameToUpload = filenameToUpload.substring(
+            0,
+            filenameToUpload.length - 3,
+          );
         }
       } else {
         print('Skipping compression for platform: $platform');
@@ -173,7 +175,10 @@ class DeviceRepository {
 
       int trimmingDelta = 0;
       if (platform != null) {
-        final trimmedEnd = FirmwareAssembler.findFirmwareEnd(firmwareData, platform);
+        final trimmedEnd = FirmwareAssembler.findFirmwareEnd(
+          firmwareData,
+          platform,
+        );
         trimmingDelta = firmwareData.length - trimmedEnd;
       }
       print('Trimming Delta: $trimmingDelta');
@@ -202,24 +207,28 @@ class DeviceRepository {
             sendTimeout: const Duration(seconds: 120),
           ),
           onSendProgress: (sent, total) {
-             print('Upload Progress: ${(sent / total * 100).toStringAsFixed(1)}%');
+            print(
+              'Upload Progress: ${(sent / total * 100).toStringAsFixed(1)}%',
+            );
           },
         );
 
         final responseData = response.data;
         if (responseData is Map<String, dynamic>) {
           if (responseData['status'] == 'mismatch') {
-             // Let the upper layer handle mismatch via confirmForceUpdate
-             throw Exception('mismatch');
+            // Let the upper layer handle mismatch via confirmForceUpdate
+            throw Exception('mismatch');
           } else if (responseData['status'] != 'ok') {
-             throw Exception('Flashing failed: ${responseData['msg']}');
+            throw Exception('Flashing failed: ${responseData['msg']}');
           }
         }
         print('LOG: Flash successful!');
       } on DioException catch (e) {
         if (_isExpectedRebootSocketDrop(e)) {
-           print('LOG: Device successfully updated and rebooted! Caught expected socket drop.');
-           return; // Treat as full success
+          print(
+            'LOG: Device successfully updated and rebooted! Caught expected socket drop.',
+          );
+          return; // Treat as full success
         }
         rethrow;
       }
@@ -230,20 +239,18 @@ class DeviceRepository {
 
   bool _isExpectedRebootSocketDrop(DioException e) {
     final errStr = e.toString().toLowerCase();
-    return errStr.contains('software caused connection abort') || 
-           errStr.contains('connection closed before full header was received') ||
-           errStr.contains('connection reset by peer') ||
-           errStr.contains('broken pipe');
+    return errStr.contains('software caused connection abort') ||
+        errStr.contains('connection closed before full header was received') ||
+        errStr.contains('connection reset by peer') ||
+        errStr.contains('broken pipe');
   }
 
   /// Confirms a forced update after a target mismatch using Dio.
   Future<void> confirmForceUpdate() async {
     try {
       print('LOG: Sending manual action=confirm to /forceupdate...');
-      
-      final formData = FormData.fromMap({
-        'action': 'confirm',
-      });
+
+      final formData = FormData.fromMap({'action': 'confirm'});
 
       final evaluatedLength = formData.length;
 
@@ -251,26 +258,29 @@ class DeviceRepository {
         '/forceupdate',
         data: formData,
         options: Options(
-          headers: {
-            Headers.contentLengthHeader: evaluatedLength,
-          },
+          headers: {Headers.contentLengthHeader: evaluatedLength},
         ),
       );
 
       final responseData = response.data;
-      if (responseData is Map<String, dynamic> && responseData['status'] != 'ok') {
+      if (responseData is Map<String, dynamic> &&
+          responseData['status'] != 'ok') {
         throw Exception('Force update failed: ${responseData['msg']}');
       }
       print('LOG: Force update successful!');
     } on DioException catch (e) {
-        final errStr = e.toString();
-        if (errStr.contains('Software caused connection abort') || 
-            errStr.contains('Connection closed before full header was received') ||
-            errStr.contains('Connection reset by peer')) {
-           print('LOG: ESP32 successfully forced and rebooted! Caught expected socket drop.');
-           return; 
-        }
-        throw Exception('Failed to force update: $e');
+      final errStr = e.toString();
+      if (errStr.contains('Software caused connection abort') ||
+          errStr.contains(
+            'Connection closed before full header was received',
+          ) ||
+          errStr.contains('Connection reset by peer')) {
+        print(
+          'LOG: ESP32 successfully forced and rebooted! Caught expected socket drop.',
+        );
+        return;
+      }
+      throw Exception('Failed to force update: $e');
     } catch (e) {
       throw Exception('Failed to force update: $e');
     }
@@ -279,20 +289,17 @@ class DeviceRepository {
   /// Updates the Model Match configuration.
   /// Endpoint: POST /config
   ///
-  /// [modelId] is the ID (0-63). 255 usually means off in ELRS context, 
+  /// [modelId] is the ID (0-63). 255 usually means off in ELRS context,
   /// but we'll stick to the user request.
   /// [enabled] determines if model match is active.
   Future<void> updateModelMatch(int modelId, bool enabled) async {
     try {
-      // Structure based on ELRS config API. 
+      // Structure based on ELRS config API.
       // For MVP, sending flat JSON keys as requested.
       // Real ELRS uses a more complex structure, but this is the requested contract.
       await _dio.post(
         '/config',
-        data: {
-          'modelid': modelId,
-          'modelMatch': enabled,
-        },
+        data: {'modelid': modelId, 'modelMatch': enabled},
       );
     } catch (e) {
       throw Exception('Failed to update model match: $e');
@@ -307,22 +314,17 @@ class DeviceRepository {
   Future<void> setPwmMapping(Map<int, int> mapping) async {
     try {
       if (mapping.isEmpty) return;
-      
+
       final maxIndex = mapping.keys.reduce((a, b) => a > b ? a : b);
       final List<int> pwm = List.filled(maxIndex + 1, 0);
-      
+
       mapping.forEach((pin, channel) {
         if (pin >= 0 && pin < pwm.length) {
           pwm[pin] = channel;
         }
       });
 
-      await _dio.post(
-        '/config',
-        data: {
-          'pwm': pwm,
-        },
-      );
+      await _dio.post('/config', data: {'pwm': pwm});
     } catch (e) {
       throw Exception('Failed to set PWM mapping: $e');
     }

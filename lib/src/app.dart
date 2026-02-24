@@ -17,6 +17,7 @@ import 'core/theme/app_theme.dart';
 import 'router.dart';
 import 'core/networking/connectivity_service.dart';
 import 'features/settings/presentation/settings_controller.dart';
+import 'features/updates/presentation/update_controller.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -40,6 +41,7 @@ class _AppContent extends HookConsumerWidget {
       Future.microtask(() {
         ref.read(connectivityServiceProvider.notifier).autoBindIfWiFi();
         ref.read(settingsControllerProvider.notifier).loadSettings();
+        ref.read(updateControllerProvider.notifier).checkForUpdates();
       });
       return null;
     }, []);

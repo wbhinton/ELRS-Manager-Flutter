@@ -226,10 +226,7 @@ void main() {
     addTearDown(container.dispose);
 
     // Act
-    final subscription = container.listen(
-      flashingControllerProvider,
-      (_, __) {},
-    );
+    await pumpEventQueue();
     final controller = container.read(flashingControllerProvider.notifier);
     controller.selectTarget(
       const TargetDefinition(

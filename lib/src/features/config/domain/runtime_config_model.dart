@@ -12,7 +12,6 @@ abstract class RuntimeConfig with _$RuntimeConfig {
   // to extensions, causing NoSuchMethodError at runtime.
   const RuntimeConfig._();
 
-  @JsonSerializable(explicitToJson: true)
   const factory RuntimeConfig({
     @JsonKey(name: 'product_name') String? productName,
     @Default('unknown') String version,
@@ -29,7 +28,6 @@ abstract class RuntimeConfig with _$RuntimeConfig {
 
 @freezed
 abstract class ElrsSettings with _$ElrsSettings {
-  @JsonSerializable(explicitToJson: true)
   const factory ElrsSettings({
     @JsonKey(name: 'product_name') String? productName,
     String? version,
@@ -46,7 +44,6 @@ abstract class ElrsSettings with _$ElrsSettings {
 
 @freezed
 abstract class ElrsOptions with _$ElrsOptions {
-  @JsonSerializable(explicitToJson: true)
   const factory ElrsOptions({
     List<int>? uid,
     @JsonKey(name: 'wifi-ssid') String? wifiSsid,
@@ -69,7 +66,6 @@ abstract class ElrsOptions with _$ElrsOptions {
 
 @freezed
 abstract class ElrsConfig with _$ElrsConfig {
-  @JsonSerializable(explicitToJson: true)
   const factory ElrsConfig({
     @JsonKey(name: 'modelid') int? modelId,
     @JsonKey(name: 'force-tlm') bool? forceTlm,

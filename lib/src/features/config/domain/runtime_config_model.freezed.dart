@@ -239,8 +239,8 @@ return $default(_that.productName,_that.version,_that.target,_that.activeIp,_tha
 }
 
 /// @nodoc
+@JsonSerializable()
 
-@JsonSerializable(explicitToJson: true)
 class _RuntimeConfig extends RuntimeConfig {
   const _RuntimeConfig({@JsonKey(name: 'product_name') this.productName, this.version = 'unknown', this.target, this.activeIp, this.settings = const ElrsSettings(), this.options = const ElrsOptions(), this.config = const ElrsConfig()}): super._();
   factory _RuntimeConfig.fromJson(Map<String, dynamic> json) => _$RuntimeConfigFromJson(json);
@@ -547,8 +547,8 @@ return $default(_that.productName,_that.version,_that.target,_that.moduleType,_t
 }
 
 /// @nodoc
+@JsonSerializable()
 
-@JsonSerializable(explicitToJson: true)
 class _ElrsSettings implements ElrsSettings {
   const _ElrsSettings({@JsonKey(name: 'product_name') this.productName, this.version, this.target, @JsonKey(name: 'module-type') this.moduleType, @JsonKey(name: 'has_serial_pins') this.hasSerialPins, @JsonKey(name: 'device_id') this.deviceId, this.domain});
   factory _ElrsSettings.fromJson(Map<String, dynamic> json) => _$ElrsSettingsFromJson(json);
@@ -834,8 +834,8 @@ return $default(_that.uid,_that.wifiSsid,_that.wifiPassword,_that.wifiOnInterval
 }
 
 /// @nodoc
+@JsonSerializable()
 
-@JsonSerializable(explicitToJson: true)
 class _ElrsOptions implements ElrsOptions {
   const _ElrsOptions({final  List<int>? uid, @JsonKey(name: 'wifi-ssid') this.wifiSsid, @JsonKey(name: 'wifi-password') this.wifiPassword, @JsonKey(name: 'wifi-on-interval') this.wifiOnInterval, @JsonKey(name: 'is-airport') this.isAirport, @JsonKey(name: 'airport-uart-baud') this.airportUartBaud, @JsonKey(name: 'tlm-interval') this.tlmInterval, @JsonKey(name: 'fan-runtime') this.fanRuntime, @JsonKey(name: 'lock-on-first-connection') this.lockOnFirstConnection, @JsonKey(name: 'rcvr-uart-baud') this.rcvrUartBaud, @JsonKey(name: 'dji-permanently-armed') this.djiPermanentlyArmed, @JsonKey(name: 'freq-index') this.freqIndex, this.domain}): _uid = uid;
   factory _ElrsOptions.fromJson(Map<String, dynamic> json) => _$ElrsOptionsFromJson(json);
@@ -1136,8 +1136,8 @@ return $default(_that.modelId,_that.forceTlm,_that.vbind,_that.serialProtocol,_t
 }
 
 /// @nodoc
+@JsonSerializable()
 
-@JsonSerializable(explicitToJson: true)
 class _ElrsConfig implements ElrsConfig {
   const _ElrsConfig({@JsonKey(name: 'modelid') this.modelId, @JsonKey(name: 'force-tlm') this.forceTlm, this.vbind, @JsonKey(name: 'serial-protocol') this.serialProtocol, @JsonKey(name: 'serial1-protocol') this.serial1Protocol, @JsonKey(name: 'sbus-failsafe') this.sbusFailsafe, final  List<dynamic> pwm = const [], final  Map<String, dynamic>? hardware}): _pwm = pwm,_hardware = hardware;
   factory _ElrsConfig.fromJson(Map<String, dynamic> json) => _$ElrsConfigFromJson(json);

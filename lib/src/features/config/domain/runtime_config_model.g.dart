@@ -29,9 +29,9 @@ Map<String, dynamic> _$RuntimeConfigToJson(_RuntimeConfig instance) =>
       'version': instance.version,
       'target': instance.target,
       'activeIp': instance.activeIp,
-      'settings': instance.settings.toJson(),
-      'options': instance.options.toJson(),
-      'config': instance.config.toJson(),
+      'settings': instance.settings,
+      'options': instance.options,
+      'config': instance.config,
     };
 
 _ElrsSettings _$ElrsSettingsFromJson(Map<String, dynamic> json) =>

@@ -25,7 +25,9 @@ class HardwareStatusCard extends ConsumerWidget {
       shadowColor: isConnected ? Colors.teal.withOpacity(0.5) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isConnected ? const BorderSide(color: Colors.cyan, width: 2) : BorderSide.none,
+        side: isConnected
+            ? const BorderSide(color: Colors.cyan, width: 2)
+            : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -39,7 +41,12 @@ class HardwareStatusCard extends ConsumerWidget {
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
-                    child: _buildStateContent(context, ref, configAsync as AsyncValue<RuntimeConfig?>, selectedTarget),
+                    child: _buildStateContent(
+                      context,
+                      ref,
+                      configAsync,
+                      selectedTarget,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -56,8 +63,8 @@ class HardwareStatusCard extends ConsumerWidget {
   }
 
   Widget _buildStateContent(
-    BuildContext context, 
-    WidgetRef ref, 
+    BuildContext context,
+    WidgetRef ref,
     AsyncValue<RuntimeConfig?> configAsync,
     dynamic selectedTarget,
   ) {
@@ -73,14 +80,16 @@ class HardwareStatusCard extends ConsumerWidget {
 
     if (configAsync.hasValue && configAsync.value != null) {
       final config = configAsync.value!;
-      
+
       final deviceTarget = config.target;
-      final isMatched = selectedTarget != null &&
+      final isMatched =
+          selectedTarget != null &&
           deviceTarget != null &&
           deviceTarget != 'Unknown' &&
           selectedTarget.name == deviceTarget;
 
-      final showMismatch = selectedTarget != null &&
+      final showMismatch =
+          selectedTarget != null &&
           deviceTarget != null &&
           deviceTarget != 'Unknown' &&
           selectedTarget.name != deviceTarget;
@@ -104,7 +113,9 @@ class HardwareStatusCard extends ConsumerWidget {
               children: [
                 Text(
                   config.productName ?? config.target ?? 'ELRS Device',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -112,16 +123,24 @@ class HardwareStatusCard extends ConsumerWidget {
                   children: [
                     Text(
                       'Connected: ${config.activeIp ?? 'Unknown IP'}',
-                      style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: Colors.teal,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     if (config.options.domain != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.5),
+                          ),
                         ),
                         child: Text(
                           getDomainLabel(
@@ -130,7 +149,11 @@ class HardwareStatusCard extends ConsumerWidget {
                                 ? FrequencyCategory.freq900MHz
                                 : FrequencyCategory.freq2400MHz,
                           ),
-                          style: const TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -177,20 +200,22 @@ class HardwareStatusCard extends ConsumerWidget {
               Text(
                 'No Device Found',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               TextButton.icon(
                 onPressed: () {
-                  ref.read(configViewModelProvider.notifier).fetchConfig('10.0.0.1'); 
+                  ref
+                      .read(configViewModelProvider.notifier)
+                      .fetchConfig('10.0.0.1');
                 },
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -208,7 +233,8 @@ class _PulsingRingIcon extends StatefulWidget {
   _PulsingRingIconState createState() => _PulsingRingIconState();
 }
 
-class _PulsingRingIconState extends State<_PulsingRingIcon> with SingleTickerProviderStateMixin {
+class _PulsingRingIconState extends State<_PulsingRingIcon>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -216,13 +242,18 @@ class _PulsingRingIconState extends State<_PulsingRingIcon> with SingleTickerPro
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat(reverse: false);
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: false);
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -246,7 +277,10 @@ class _PulsingRingIconState extends State<_PulsingRingIcon> with SingleTickerPro
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.teal.withOpacity(_fadeAnimation.value), width: 3),
+                  border: Border.all(
+                    color: Colors.teal.withOpacity(_fadeAnimation.value),
+                    width: 3,
+                  ),
                 ),
               ),
             );
@@ -302,7 +336,9 @@ class _ManualIpDialogState extends State<_ManualIpDialog> {
         decoration: InputDecoration(
           hintText: 'e.g. 10.0.0.1',
           labelText: 'Device IP Address',
-          errorText: _controller.text.isNotEmpty && !_isValid ? 'Invalid IPv4 address' : null,
+          errorText: _controller.text.isNotEmpty && !_isValid
+              ? 'Invalid IPv4 address'
+              : null,
         ),
         keyboardType: TextInputType.number,
       ),
@@ -314,7 +350,9 @@ class _ManualIpDialogState extends State<_ManualIpDialog> {
         ElevatedButton(
           onPressed: _isValid
               ? () {
-                  widget.ref.read(configViewModelProvider.notifier).setManualIp(_controller.text);
+                  widget.ref
+                      .read(configViewModelProvider.notifier)
+                      .setManualIp(_controller.text);
                   Navigator.pop(context);
                 }
               : null,

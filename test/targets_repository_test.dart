@@ -1,13 +1,13 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dio/dio.dart';
 import 'package:elrs_mobile/src/features/flashing/data/targets_repository.dart';
 import 'package:elrs_mobile/src/core/storage/firmware_cache_service.dart';
-import 'package:elrs_mobile/src/features/flashing/domain/target_definition.dart';
 
 class MockDio extends Mock implements Dio {}
+
 class MockFirmwareCacheService extends Mock implements FirmwareCacheService {}
+
 class MockResponse extends Mock implements Response {}
 
 void main() {
@@ -19,7 +19,7 @@ void main() {
     mockDio = MockDio();
     mockCache = MockFirmwareCacheService();
     repository = TargetsRepository(mockDio, mockCache);
-    
+
     registerFallbackValue(Options());
   });
 
@@ -41,8 +41,9 @@ void main() {
     // Arrange
     final response = MockResponse();
     when(() => response.data).thenReturn(sampleJson);
-    when(() => mockDio.get(any(), options: any(named: 'options')))
-        .thenAnswer((_) async => response);
+    when(
+      () => mockDio.get(any(), options: any(named: 'options')),
+    ).thenAnswer((_) async => response);
     when(() => mockCache.saveTargetJson(any(), any())).thenAnswer((_) async {});
 
     // Act
@@ -56,10 +57,12 @@ void main() {
 
   test('fetchTargets returns data from cache when network fails', () async {
     // Arrange
-    when(() => mockDio.get(any(), options: any(named: 'options')))
-        .thenThrow(DioException(requestOptions: RequestOptions(path: '')));
-    when(() => mockCache.getCachedTargetJson(any()))
-        .thenAnswer((_) async => sampleJson);
+    when(
+      () => mockDio.get(any(), options: any(named: 'options')),
+    ).thenThrow(DioException(requestOptions: RequestOptions(path: '')));
+    when(
+      () => mockCache.getCachedTargetJson(any()),
+    ).thenAnswer((_) async => sampleJson);
 
     // Act
     final result = await repository.fetchTargets();
@@ -72,10 +75,12 @@ void main() {
 
   test('fetchTargets throws when network fails and cache is empty', () async {
     // Arrange
-    when(() => mockDio.get(any(), options: any(named: 'options')))
-        .thenThrow(Exception('Network error'));
-    when(() => mockCache.getCachedTargetJson(any()))
-        .thenAnswer((_) async => null);
+    when(
+      () => mockDio.get(any(), options: any(named: 'options')),
+    ).thenThrow(Exception('Network error'));
+    when(
+      () => mockCache.getCachedTargetJson(any()),
+    ).thenAnswer((_) async => null);
 
     // Act & Assert
     expect(() => repository.fetchTargets(), throwsException);
