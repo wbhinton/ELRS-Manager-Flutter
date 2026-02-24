@@ -118,8 +118,10 @@ class HardwareStatusCard extends ConsumerWidget {
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       'Connected: ${config.activeIp ?? 'Unknown IP'}',
@@ -128,8 +130,7 @@ class HardwareStatusCard extends ConsumerWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (config.options.domain != null) ...[
-                      const SizedBox(width: 8),
+                    if (config.options.domain != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -156,7 +157,6 @@ class HardwareStatusCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -388,12 +388,15 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -51,20 +51,22 @@ class FirmwareManagerScreen extends HookConsumerWidget {
                       final version = state.availableVersions[index];
                       final isCached = state.cachedVersions.contains(version);
                       final progress = state.downloadProgress[version];
-                      
+
                       return ListTile(
                         title: Text('Version $version'),
-                        subtitle: isCached ? const Text('Ready for offline use') : null,
+                        subtitle: isCached
+                            ? const Text('Ready for offline use')
+                            : null,
                         leading: Icon(
-                          Icons.dns, 
-                          color: isCached ? Colors.green : Colors.grey
+                          Icons.dns,
+                          color: isCached ? Colors.green : Colors.grey,
                         ),
                         trailing: _buildTrailingAction(
-                          context, 
-                          version, 
-                          isCached, 
-                          progress, 
-                          controller
+                          context,
+                          version,
+                          isCached,
+                          progress,
+                          controller,
                         ),
                       );
                     },
@@ -75,11 +77,17 @@ class FirmwareManagerScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildStorageHeader(BuildContext context, FirmwareManagerState state, int limit) {
+  Widget _buildStorageHeader(
+    BuildContext context,
+    FirmwareManagerState state,
+    int limit,
+  ) {
     final usagePercent = (state.cachedVersions.length / limit).clamp(0.0, 1.0);
     Color barColor = Colors.blue;
-    if (usagePercent >= 1.0) barColor = Colors.red;
-    else if (usagePercent > 0.8) barColor = Colors.orange;
+    if (usagePercent >= 1.0)
+      barColor = Colors.red;
+    else if (usagePercent > 0.8)
+      barColor = Colors.orange;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -97,7 +105,9 @@ class FirmwareManagerScreen extends HookConsumerWidget {
                 '${state.cachedVersions.length} / $limit Versions',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: state.cachedVersions.length >= limit ? Colors.red : null,
+                  color: state.cachedVersions.length >= limit
+                      ? Colors.red
+                      : null,
                 ),
               ),
             ],
@@ -114,17 +124,20 @@ class FirmwareManagerScreen extends HookConsumerWidget {
   }
 
   Widget _buildTrailingAction(
-    BuildContext context, 
-    String version, 
-    bool isCached, 
-    double? progress, 
-    FirmwareManagerController controller
+    BuildContext context,
+    String version,
+    bool isCached,
+    double? progress,
+    FirmwareManagerController controller,
   ) {
     if (progress != null) {
       return SizedBox(
         width: 24,
         height: 24,
-        child: CircularProgressIndicator(value: progress > 0 ? progress : null, strokeWidth: 2),
+        child: CircularProgressIndicator(
+          value: progress > 0 ? progress : null,
+          strokeWidth: 2,
+        ),
       );
     }
 

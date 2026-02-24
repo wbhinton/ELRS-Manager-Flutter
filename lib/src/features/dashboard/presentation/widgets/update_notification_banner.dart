@@ -56,8 +56,9 @@ class UpdateNotificationBanner extends HookConsumerWidget {
                   style: TextStyle(fontSize: 13),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
                 children: [
                   TextButton(
                     onPressed: () => ref
@@ -65,7 +66,6 @@ class UpdateNotificationBanner extends HookConsumerWidget {
                         .dismissUpdate(),
                     child: const Text('Later'),
                   ),
-                  const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () => _launchUrl(updateState.releaseUrl),
                     child: const Text('View Release'),
