@@ -84,14 +84,14 @@ class FirmwareManagerScreen extends HookConsumerWidget {
   ) {
     final usagePercent = (state.cachedVersions.length / limit).clamp(0.0, 1.0);
     Color barColor = Colors.blue;
-    if (usagePercent >= 1.0)
+    if (usagePercent >= 1.0) {
       barColor = Colors.red;
-    else if (usagePercent > 0.8)
+    } else if (usagePercent > 0.8)
       barColor = Colors.orange;
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Column(
         children: [
           Row(

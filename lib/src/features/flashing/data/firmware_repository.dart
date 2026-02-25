@@ -1,5 +1,5 @@
 // Copyright (C) 2026  Weston Hinton [wbhinton@gmail.com]
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -21,11 +21,8 @@ part 'firmware_repository.g.dart';
 class FirmwareData {
   final Uint8List bytes;
   final String filename;
-  
-  const FirmwareData({
-    required this.bytes,
-    required this.filename,
-  });
+
+  const FirmwareData({required this.bytes, required this.filename});
 }
 
 class FirmwareRepository {
@@ -45,8 +42,12 @@ class FirmwareRepository {
         onReceiveProgress: onReceiveProgress,
       );
       print('Zip downloaded (${zipBytes.length} bytes). Extracting...');
-      
-      return extractFirmwareFromZip(zipBytes, targetName, regulatoryDomain: regulatoryDomain);
+
+      return extractFirmwareFromZip(
+        zipBytes,
+        targetName,
+        regulatoryDomain: regulatoryDomain,
+      );
     } catch (e) {
       print('Firmware download error: $e');
       throw Exception('Failed to download/extract firmware: $e');
@@ -57,7 +58,9 @@ class FirmwareRepository {
   Future<String> fetchHashForVersion(String version) async {
     try {
       print('Fetching Artifactory Index...');
-      final indexResponse = await _dio.get('https://artifactory.expresslrs.org/ExpressLRS/index.json');
+      final indexResponse = await _dio.get(
+        'https://artifactory.expresslrs.org/ExpressLRS/index.json',
+      );
       final tags = indexResponse.data['tags'] as Map<String, dynamic>;
 
       if (!tags.containsKey(version)) {
@@ -75,12 +78,13 @@ class FirmwareRepository {
 
   /// Downloads an artifact by filename for a specific commit hash.
   Future<List<int>> downloadArtifact(
-    String hash, 
+    String hash,
     String filename, {
     void Function(int, int)? onReceiveProgress,
   }) async {
     try {
-      final url = 'https://artifactory.expresslrs.org/ExpressLRS/$hash/$filename';
+      final url =
+          'https://artifactory.expresslrs.org/ExpressLRS/$hash/$filename';
       print('Downloading artifact: $url');
 
       final response = await _dio.get<List<int>>(
@@ -103,8 +107,8 @@ class FirmwareRepository {
   }) async {
     final hash = await fetchHashForVersion(version);
     return downloadArtifact(
-      hash, 
-      'firmware.zip', 
+      hash,
+      'firmware.zip',
       onReceiveProgress: onReceiveProgress,
     );
   }
@@ -138,41 +142,43 @@ class FirmwareRepository {
     try {
       // 3. Extract & Search
       final archive = ZipDecoder().decodeBytes(zipBytes);
-      
+
       // Zip Structure: firmware/FCC/TargetName/firmware.bin OR firmware/LBT/TargetName/firmware.bin
       // We need to match the folder name to the targetName.
       // Example: targetName="Unified_ESP32_2400_RX", we look for "*/Unified_ESP32_2400_RX/firmware.bin" or ".bin.gz"
-      
+
       ArchiveFile? matchedFile;
       final candidates = <String>[];
 
       for (final file in archive) {
         if (!file.isFile) continue;
         final name = file.name;
-        
+
         if (name.endsWith('.bin') || name.endsWith('.bin.gz')) {
-           candidates.add(name);
-           
-           // Check if this file is the firmware match inside the target folder
-           // Expected: firmware/DOMAIN/TARGET_NAME/firmware.bin(.gz)
-           if (name.contains('/$targetName/') && (name.endsWith('firmware.bin') || name.endsWith('firmware.bin.gz'))) {
-              // Check Domain
-              // Domain 0 = FCC? Usually 'FCC' folder.
-              // Domain 1 = LBT (EU)? Usually 'LBT' folder.
-              final isLbt = name.contains('/LBT/');
-              final isFcc = name.contains('/FCC/'); // Or just not LBT?
-              
-              if (regulatoryDomain == 1 && isLbt) {
-                 matchedFile = file;
-                 break;
-              } else if (regulatoryDomain == 0 && (isFcc || !isLbt)) {
-                 // Prefer FCC or non-LBT
-                 matchedFile = file;
-                 break; 
-              }
-              
-              if (matchedFile == null) matchedFile = file;
-           }
+          candidates.add(name);
+
+          // Check if this file is the firmware match inside the target folder
+          // Expected: firmware/DOMAIN/TARGET_NAME/firmware.bin(.gz)
+          if (name.contains('/$targetName/') &&
+              (name.endsWith('firmware.bin') ||
+                  name.endsWith('firmware.bin.gz'))) {
+            // Check Domain
+            // Domain 0 = FCC? Usually 'FCC' folder.
+            // Domain 1 = LBT (EU)? Usually 'LBT' folder.
+            final isLbt = name.contains('/LBT/');
+            final isFcc = name.contains('/FCC/'); // Or just not LBT?
+
+            if (regulatoryDomain == 1 && isLbt) {
+              matchedFile = file;
+              break;
+            } else if (regulatoryDomain == 0 && (isFcc || !isLbt)) {
+              // Prefer FCC or non-LBT
+              matchedFile = file;
+              break;
+            }
+
+            matchedFile ??= file;
+          }
         }
       }
 
@@ -182,7 +188,9 @@ class FirmwareRepository {
         for (final c in candidates) {
           print(' - $c');
         }
-        throw Exception('Firmware file for $targetName not found in release archive.');
+        throw Exception(
+          'Firmware file for $targetName not found in release archive.',
+        );
       }
 
       print('Extracted match: ${matchedFile.name}');
@@ -195,12 +203,11 @@ class FirmwareRepository {
       // If it's named `firmware.bin.gz`, we return that.
       // I will return the basename of the matched file.
       final filename = matchedFile.name.split('/').last;
-      
+
       return FirmwareData(
         bytes: Uint8List.fromList(fileContent),
         filename: filename,
       );
-
     } catch (e) {
       throw Exception('Failed to extract: $e');
     }

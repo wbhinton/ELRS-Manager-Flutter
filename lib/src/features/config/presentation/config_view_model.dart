@@ -61,7 +61,7 @@ class ConfigViewModel extends _$ConfigViewModel {
     _manualIp = ip;
     final storage = await ref.read(persistenceServiceProvider.future);
     await storage.saveManualIp(ip);
-    
+
     // Explicitly transition to loading
     state = const AsyncValue.loading();
     try {
@@ -73,7 +73,10 @@ class ConfigViewModel extends _$ConfigViewModel {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 10), (_) => _performHeartbeat());
+    _heartbeatTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _performHeartbeat(),
+    );
   }
 
   Future<void> _performHeartbeat() async {
@@ -82,31 +85,33 @@ class ConfigViewModel extends _$ConfigViewModel {
     if (isFlashing) return;
 
     final service = ref.read(deviceConfigServiceProvider);
-    
+
     // Priority: 1. Manual IP (if set), 2. Discovery targets (AP, Hostnames, Discovered mDNS)
     final ips = [
       if (_manualIp != null && _manualIp!.isNotEmpty) _manualIp!,
-      '10.0.0.1', 
+      '10.0.0.1',
       'elrs_rx.local',
       'elrs_tx.local',
-      if (_lastDiscoveredIp != null) _lastDiscoveredIp!,
+      ?_lastDiscoveredIp,
     ];
 
     final uniqueIps = ips.toSet().toList();
     if (uniqueIps.isEmpty) return;
 
     try {
-      final successfulIp = await Future.any(uniqueIps.map((ip) async {
-        _probeIp = ip;
-        // Pulse probe (HEAD request, 1s timeout)
-        final alive = await service.probeDeviceHead(ip);
-        if (alive) {
-          // Robust check (GET /config, 2s timeout)
-          final ok = await service.probeDevice(ip);
-          if (ok) return ip;
-        }
-        throw Exception('Probe failed for $ip');
-      }));
+      final successfulIp = await Future.any(
+        uniqueIps.map((ip) async {
+          _probeIp = ip;
+          // Pulse probe (HEAD request, 1s timeout)
+          final alive = await service.probeDeviceHead(ip);
+          if (alive) {
+            // Robust check (GET /config, 2s timeout)
+            final ok = await service.probeDevice(ip);
+            if (ok) return ip;
+          }
+          throw Exception('Probe failed for $ip');
+        }),
+      );
 
       // A device was successfully found concurrently
       _probeIp = successfulIp;
@@ -115,14 +120,16 @@ class ConfigViewModel extends _$ConfigViewModel {
     } catch (e) {
       // If we reach here, no device was found on any priority IP
       _missedHeartbeats++;
-      
+
       if (_missedHeartbeats >= _maxMissedHeartbeats) {
         if (state.value != null || state.isLoading) {
           state = const AsyncValue.data(null);
         }
       } else {
         // Log missed heartbeat but preserve state
-        print('CONNECTION: Heartbeat missed ($_missedHeartbeats/$_maxMissedHeartbeats). Preserving last good state.');
+        print(
+          'CONNECTION: Heartbeat missed ($_missedHeartbeats/$_maxMissedHeartbeats). Preserving last good state.',
+        );
       }
     }
   }
@@ -159,10 +166,8 @@ class ConfigViewModel extends _$ConfigViewModel {
     final updatedOptions = ElrsOptions.fromJson(json);
 
     await _saveOptions(ip, json);
-    
-    state = AsyncValue.data(currentConfig.copyWith(
-      options: updatedOptions,
-    ));
+
+    state = AsyncValue.data(currentConfig.copyWith(options: updatedOptions));
   }
 
   Future<void> updateWifiPassword(String ip, String password) async {
@@ -174,10 +179,8 @@ class ConfigViewModel extends _$ConfigViewModel {
     final updatedOptions = ElrsOptions.fromJson(json);
 
     await _saveOptions(ip, json);
-    
-    state = AsyncValue.data(currentConfig.copyWith(
-      options: updatedOptions,
-    ));
+
+    state = AsyncValue.data(currentConfig.copyWith(options: updatedOptions));
   }
 
   Future<void> updateOption(String ip, String key, dynamic value) async {
@@ -189,10 +192,8 @@ class ConfigViewModel extends _$ConfigViewModel {
     final updatedOptions = ElrsOptions.fromJson(json);
 
     await _saveOptions(ip, json);
-    
-    state = AsyncValue.data(currentConfig.copyWith(
-      options: updatedOptions,
-    ));
+
+    state = AsyncValue.data(currentConfig.copyWith(options: updatedOptions));
   }
 
   Future<void> _saveOptions(String ip, Map<String, dynamic> options) async {

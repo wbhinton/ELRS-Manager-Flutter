@@ -6,7 +6,7 @@ class AppTheme {
   static const Color background = Color(0xFF1E1E1E); // Deep Grey
   static const Color surface = Color(0xFF2D2D2D); // Card Grey
   static const Color error = Color(0xFFCF6679);
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -15,7 +15,6 @@ class AppTheme {
         primary: primary,
         surface: surface,
         error: error,
-        background: background,
         onPrimary: Colors.white,
         onSurface: Colors.white,
       ),
@@ -50,13 +49,8 @@ class AppTheme {
           backgroundColor: primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
       appBarTheme: const AppBarTheme(

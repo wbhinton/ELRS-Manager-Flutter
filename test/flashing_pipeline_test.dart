@@ -142,7 +142,7 @@ void main() {
     // Act: Initialize Controller
     final subscription = container.listen(
       flashingControllerProvider,
-      (_, __) {},
+      (_, _) {},
     );
     final controller = container.read(flashingControllerProvider.notifier);
 

@@ -9,7 +9,7 @@ part 'target_selectors.g.dart';
 @riverpod
 List<String> uniqueVendors(Ref ref) {
   final targetsValue = ref.watch(targetsProvider);
-  
+
   return targetsValue.when(
     data: (targets) {
       final vendors = targets.map((t) => t.vendor).toSet().toList();
@@ -17,7 +17,7 @@ List<String> uniqueVendors(Ref ref) {
       return vendors;
     },
     loading: () => [],
-    error: (_, __) => [],
+    error: (_, _) => [],
   );
 }
 
@@ -25,7 +25,9 @@ List<String> uniqueVendors(Ref ref) {
 List<TargetDefinition> devicesForVendor(Ref ref) {
   final targetsValue = ref.watch(targetsProvider);
   // Correct usage: watch the provider, then select properties
-  final selectedVendor = ref.watch(flashingControllerProvider.select((s) => s.selectedVendor));
+  final selectedVendor = ref.watch(
+    flashingControllerProvider.select((s) => s.selectedVendor),
+  );
 
   if (selectedVendor == null) return [];
 
@@ -36,6 +38,6 @@ List<TargetDefinition> devicesForVendor(Ref ref) {
       return devices;
     },
     loading: () => [],
-    error: (_, __) => [],
+    error: (_, _) => [],
   );
 }

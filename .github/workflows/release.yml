@@ -32,9 +32,17 @@ jobs:
 
       - name: Build APK and App Bundle
         run: |
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          BUILD_NUMBER=${{ github.run_number }}
           printf "%s" "${{ secrets.KEYSTORE_BASE64 }}" | base64 -di > android/app/elrs-upload.jks
-          flutter build apk --release --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
-          flutter build appbundle --release --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          flutter build apk --release \
+            --build-name=$VERSION \
+            --build-number=$BUILD_NUMBER \
+            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          flutter build appbundle --release \
+            --build-name=$VERSION \
+            --build-number=$BUILD_NUMBER \
+            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

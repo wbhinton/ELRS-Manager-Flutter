@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'widgets/target_selection_card.dart';
@@ -15,7 +14,9 @@ class FlashingScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     useEffect(() {
       // Load saved options on mount
-      Future.microtask(() => ref.read(flashingControllerProvider.notifier).loadSavedOptions());
+      Future.microtask(
+        () => ref.read(flashingControllerProvider.notifier).loadSavedOptions(),
+      );
       return null;
     }, []);
 
@@ -32,7 +33,10 @@ class FlashingScreen extends HookConsumerWidget {
             barrierDismissible: false,
             builder: (context) => AlertDialog(
               title: const Text('Target Mismatch'),
-              content: Text(state.errorMessage ?? 'The selected firmware does not match this device.'),
+              content: Text(
+                state.errorMessage ??
+                    'The selected firmware does not match this device.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -46,18 +50,23 @@ class FlashingScreen extends HookConsumerWidget {
                     Navigator.pop(context);
                     ref.read(flashingControllerProvider.notifier).flash();
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                  ),
                   child: const Text('RETRY FLASH'),
                 ),
               ],
             ),
           );
-        } else if (next == FlashingStatus.error && state.errorMessage == 'NO_BIND_PHRASE') {
+        } else if (next == FlashingStatus.error &&
+            state.errorMessage == 'NO_BIND_PHRASE') {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('No Binding Phrase'),
-              content: const Text('No Binding Phrase set. Proceed with default (empty)?'),
+              content: const Text(
+                'No Binding Phrase set. Proceed with default (empty)?',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -66,7 +75,9 @@ class FlashingScreen extends HookConsumerWidget {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    ref.read(flashingControllerProvider.notifier).flash(ignoreMissingBindPhrase: true);
+                    ref
+                        .read(flashingControllerProvider.notifier)
+                        .flash(ignoreMissingBindPhrase: true);
                   },
                   child: const Text('PROCEED'),
                 ),
@@ -74,13 +85,13 @@ class FlashingScreen extends HookConsumerWidget {
             ),
           );
         } else if (next == FlashingStatus.success) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Flashing completed successfully!')),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Flashing completed successfully!')),
+          );
         } else if (next == FlashingStatus.downloadSuccess) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Firmware saved successfully!')),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Firmware saved successfully!')),
+          );
         }
       },
     );
@@ -109,7 +120,8 @@ class FlashingScreen extends HookConsumerWidget {
             const SizedBox(height: 24),
 
             // 3. Action Button & Progress
-            if (state.errorMessage != null && state.status != FlashingStatus.mismatch)
+            if (state.errorMessage != null &&
+                state.status != FlashingStatus.mismatch)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: Text(
@@ -118,27 +130,30 @@ class FlashingScreen extends HookConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
-              
+
             if (state.status == FlashingStatus.success)
               const Padding(
                 padding: EdgeInsets.only(bottom: 16.0),
                 child: Text(
                   'Flashing Successful! Device is rebooting.',
-                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
 
-            if (state.status != FlashingStatus.idle && 
-                state.status != FlashingStatus.error && 
+            if (state.status != FlashingStatus.idle &&
+                state.status != FlashingStatus.error &&
                 state.status != FlashingStatus.success &&
                 state.status != FlashingStatus.mismatch)
               Column(
                 children: [
-                   LinearProgressIndicator(value: state.progress),
-                   const SizedBox(height: 8),
-                   Text(state.status.name.toUpperCase()),
-                   const SizedBox(height: 16),
+                  LinearProgressIndicator(value: state.progress),
+                  const SizedBox(height: 8),
+                  Text(state.status.name.toUpperCase()),
+                  const SizedBox(height: 16),
                 ],
               ),
 
@@ -146,12 +161,15 @@ class FlashingScreen extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: OutlinedButton(
-                  onPressed: (state.status == FlashingStatus.idle || 
-                              state.status == FlashingStatus.error || 
-                              state.status == FlashingStatus.success ||
-                              state.status == FlashingStatus.downloadSuccess ||
-                              state.status == FlashingStatus.mismatch)
-                       ? () => ref.read(flashingControllerProvider.notifier).downloadFirmware()
+                  onPressed:
+                      (state.status == FlashingStatus.idle ||
+                          state.status == FlashingStatus.error ||
+                          state.status == FlashingStatus.success ||
+                          state.status == FlashingStatus.downloadSuccess ||
+                          state.status == FlashingStatus.mismatch)
+                      ? () => ref
+                            .read(flashingControllerProvider.notifier)
+                            .downloadFirmware()
                       : null,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -161,18 +179,27 @@ class FlashingScreen extends HookConsumerWidget {
               ),
 
             ElevatedButton(
-              onPressed: (state.status == FlashingStatus.idle || 
-                          state.status == FlashingStatus.error || 
-                          state.status == FlashingStatus.success ||
-                          state.status == FlashingStatus.downloadSuccess ||
-                          state.status == FlashingStatus.mismatch)
+              onPressed:
+                  (state.status == FlashingStatus.idle ||
+                      state.status == FlashingStatus.error ||
+                      state.status == FlashingStatus.success ||
+                      state.status == FlashingStatus.downloadSuccess ||
+                      state.status == FlashingStatus.mismatch)
                   ? () {
                       if (state.status == FlashingStatus.success) {
-                        ref.read(flashingControllerProvider.notifier).resetStatus();
+                        ref
+                            .read(flashingControllerProvider.notifier)
+                            .resetStatus();
                       } else if (state.status == FlashingStatus.mismatch) {
                         // Re-trigger mismatch dialog if they click the button again
-                        ref.read(flashingControllerProvider.notifier).resetStatus();
-                        Future.microtask(() => ref.read(flashingControllerProvider.notifier).flash());
+                        ref
+                            .read(flashingControllerProvider.notifier)
+                            .resetStatus();
+                        Future.microtask(
+                          () => ref
+                              .read(flashingControllerProvider.notifier)
+                              .flash(),
+                        );
                       } else {
                         ref.read(flashingControllerProvider.notifier).flash();
                       }
@@ -180,9 +207,13 @@ class FlashingScreen extends HookConsumerWidget {
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                backgroundColor: state.status == FlashingStatus.success ? Colors.green : null,
+                backgroundColor: state.status == FlashingStatus.success
+                    ? Colors.green
+                    : null,
               ),
-              child: Text(state.status == FlashingStatus.success ? 'DONE' : 'FLASH'),
+              child: Text(
+                state.status == FlashingStatus.success ? 'DONE' : 'FLASH',
+              ),
             ),
           ],
         ),

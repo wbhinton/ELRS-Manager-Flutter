@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:elrs_mobile/src/features/flashing/data/device_repository.dart';

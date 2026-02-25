@@ -14,8 +14,10 @@ void main() {
   setUp(() {
     mockService = MockDiscoveryService();
     ipController = StreamController<String?>.broadcast();
-    
-    when(() => mockService.targetIpStream).thenAnswer((_) => ipController.stream);
+
+    when(
+      () => mockService.targetIpStream,
+    ).thenAnswer((_) => ipController.stream);
     when(() => mockService.startScan()).thenAnswer((_) async {});
     when(() => mockService.stopScan()).thenAnswer((_) async {});
   });
@@ -26,19 +28,17 @@ void main() {
 
   test('Provider emits IP when device is found', () async {
     final container = ProviderContainer(
-      overrides: [
-        discoveryServiceProvider.overrideWithValue(mockService),
-      ],
+      overrides: [discoveryServiceProvider.overrideWithValue(mockService)],
     );
     addTearDown(container.dispose);
 
     // Listen to the provider to trigger startScan
     // ignore: unused_local_variable
-    final sub = container.listen(discoveryProvider, (_, __) {});
+    final sub = container.listen(discoveryProvider, (_, _) {});
 
     // Act 1: Found device
     ipController.add('192.168.1.50');
-    
+
     // Wait for stream event propagation
     await Future.microtask(() {});
 
@@ -51,10 +51,10 @@ void main() {
 
     // Assert
     expect(container.read(discoveryProvider).value, null);
-    
+
     // Check method calls
     verify(() => mockService.startScan()).called(1);
-    
+
     // Cleanup triggers stopScan
     container.dispose();
     verify(() => mockService.stopScan()).called(1);

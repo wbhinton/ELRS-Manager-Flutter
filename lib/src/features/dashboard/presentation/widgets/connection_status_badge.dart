@@ -24,7 +24,9 @@ class ConnectionStatusBadge extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Status: ${isConnected ? "Connected" : "Disconnected"}'),
+                      Text(
+                        'Status: ${isConnected ? "Connected" : "Disconnected"}',
+                      ),
                       if (isConnected) Text('IP Address: $ip'),
                       // Signal strength could be added here if available from discovery service
                     ],
@@ -49,7 +51,9 @@ class ConnectionStatusBadge extends ConsumerWidget {
                 isConnected ? 'Connected ($ip)' : 'Searching...',
                 style: const TextStyle(fontSize: 12),
               ),
-              backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
             ),
           ),
         );

@@ -208,7 +208,7 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
             DropdownButtonFormField<int>(
               decoration: const InputDecoration(labelText: 'Regulatory Domain'),
               // Map composite bitfield to Domain ID (bits 0-3) using package:binary
-              value: Uint16(regulatoryDomain).slice(0, 3).toInt(),
+              initialValue: Uint16(regulatoryDomain).slice(0, 3).toInt(),
               items: const [
                 DropdownMenuItem(value: 0, child: Text('FCC (915MHz)')),
                 DropdownMenuItem(value: 1, child: Text('EU (868MHz)')),

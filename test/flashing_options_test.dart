@@ -104,7 +104,7 @@ void main() {
     // Act
     final subscription = container.listen(
       flashingControllerProvider,
-      (_, __) {},
+      (_, _) {},
     );
     await container
         .read(flashingControllerProvider.notifier)

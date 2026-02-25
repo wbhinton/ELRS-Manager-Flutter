@@ -11,8 +11,12 @@ class TargetSelectionCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final vendors = ref.watch(uniqueVendorsProvider);
     final devices = ref.watch(devicesForVendorProvider);
-    final selectedVendor = ref.watch(flashingControllerProvider.select((s) => s.selectedVendor));
-    final selectedTarget = ref.watch(flashingControllerProvider.select((s) => s.selectedTarget));
+    final selectedVendor = ref.watch(
+      flashingControllerProvider.select((s) => s.selectedVendor),
+    );
+    final selectedTarget = ref.watch(
+      flashingControllerProvider.select((s) => s.selectedTarget),
+    );
 
     return Card(
       child: Padding(
@@ -24,23 +28,25 @@ class TargetSelectionCard extends ConsumerWidget {
               children: [
                 Icon(Icons.developer_board),
                 SizedBox(width: 8),
-                Text('Target Selection', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  'Target Selection',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Vendor Dropdown
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Device Vendor'),
-              value: selectedVendor,
+              initialValue: selectedVendor,
               items: vendors.map((vendor) {
-                return DropdownMenuItem(
-                  value: vendor,
-                  child: Text(vendor),
-                );
+                return DropdownMenuItem(value: vendor, child: Text(vendor));
               }).toList(),
               onChanged: (value) {
-                ref.read(flashingControllerProvider.notifier).selectVendor(value);
+                ref
+                    .read(flashingControllerProvider.notifier)
+                    .selectVendor(value);
               },
             ),
             const SizedBox(height: 16),
@@ -48,10 +54,10 @@ class TargetSelectionCard extends ConsumerWidget {
             // Device Dropdown
             DropdownButtonFormField<TargetDefinition>(
               decoration: const InputDecoration(labelText: 'Device Target'),
-              value: selectedTarget,
+              initialValue: selectedTarget,
               // If no vendor selected, disable the dropdown
-              items: selectedVendor == null 
-                  ? [] 
+              items: selectedVendor == null
+                  ? []
                   : devices.map((device) {
                       return DropdownMenuItem(
                         value: device,
@@ -62,10 +68,12 @@ class TargetSelectionCard extends ConsumerWidget {
                         ),
                       );
                     }).toList(),
-              onChanged: selectedVendor == null 
-                  ? null 
+              onChanged: selectedVendor == null
+                  ? null
                   : (value) {
-                      ref.read(flashingControllerProvider.notifier).selectTarget(value);
+                      ref
+                          .read(flashingControllerProvider.notifier)
+                          .selectTarget(value);
                     },
               isExpanded: true, // Handle long text
             ),
