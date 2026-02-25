@@ -26,6 +26,10 @@ OFFSETS = {
     "Hardware JSON": (656, 2048, "2048s"),
 }
 
+# Resolve project root based on script location
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "../../.."))
+
 def get_firmware_data(path):
     """Loads firmware data, transparently decompressing if it is a .gz file."""
     if path.endswith(".gz"):
@@ -57,10 +61,7 @@ def extract_config_from_data(data):
     return results
 
 def find_binaries():
-    # Use script location to find project root reliably
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(script_dir, "../../.."))
-    binaries_dir = os.path.join(project_root, "firmware_testing", "binaries")
+    binaries_dir = os.path.join(PROJECT_ROOT, "firmware_testing", "binaries")
     
     search_dirs = [os.getcwd(), binaries_dir]
     found_files = []
@@ -135,8 +136,9 @@ def main():
         print("ERROR: One or both files are too small to contain ELRS config blocks.")
         sys.exit(1)
 
-    log_path = os.path.join("firmware_testing", "logs", f"audit_{int(datetime.now().timestamp())}.log")
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    log_dir = os.path.join(PROJECT_ROOT, "firmware_testing", "logs")
+    log_path = os.path.join(log_dir, f"audit_{int(datetime.now().timestamp())}.log")
+    os.makedirs(log_dir, exist_ok=True)
 
     with open(log_path, "w") as log:
         log.write(f"Ground Truth Audit Report - {datetime.now()}\n")

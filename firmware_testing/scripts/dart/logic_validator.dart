@@ -79,7 +79,7 @@ void main() async {
       continue;
     }
 
-    await validateBinaries(uniqueFiles[idx1], uniqueFiles[idx2]);
+    await validateBinaries(uniqueFiles[idx1], uniqueFiles[idx2], projectRoot);
   }
 }
 
@@ -91,24 +91,31 @@ Future<Uint8List> loadFirmwareData(File file) async {
   return bytes;
 }
 
-Future<void> validateBinaries(File file1, File file2) async {
+Future<void> validateBinaries(
+    File file1, File file2, Directory projectRoot) async {
   print('\nLoading ${p.basename(file1.path)}...');
   final buffer1 = await loadFirmwareData(file1);
   print('Loading ${p.basename(file2.path)}...');
   final buffer2 = await loadFirmwareData(file2);
 
+  final logDir =
+      Directory(p.join(projectRoot.path, 'firmware_testing', 'logs'));
+  if (!await logDir.exists()) {
+    await logDir.create(recursive: true);
+  }
+
   final logFile = File(
-    'firmware_testing/logs/diff_${DateTime.now().millisecondsSinceEpoch}.log',
+    p.join(logDir.path, 'diff_${DateTime.now().millisecondsSinceEpoch}.log'),
   );
+
   final logSink = logFile.openWrite();
   logSink.writeln('Comparison Report: ${DateTime.now()}');
   logSink.writeln('File 1: ${file1.path}');
   logSink.writeln('File 2: ${file2.path}\n');
 
   int discrepancies = 0;
-  final minLength = buffer1.length < buffer2.length
-      ? buffer1.length
-      : buffer2.length;
+  final minLength =
+      buffer1.length < buffer2.length ? buffer1.length : buffer2.length;
 
   if (buffer1.length != buffer2.length) {
     logSink.writeln(

@@ -74,7 +74,7 @@ class FirmwareAssembler {
 
     // 1. Trim Firmware
     print('DEBUG: Original Firmware Size: ${firmware.length}');
-    final end = _findFirmwareEnd(firmware, platform);
+    final end = findFirmwareEnd(firmware, platform);
     print('DEBUG: Calculated True End (Surgical): $end');
     print(
       'DEBUG: Bytes Stripped (Padding + Old Config): ${firmware.length - end}',
@@ -98,17 +98,21 @@ class FirmwareAssembler {
       'flash-discriminator':
           flashDiscriminator ??
           Uint32.fromWrapped(DateTime.now().millisecondsSinceEpoch).toInt(),
-      'uid': uid,
-      'wifi-on-interval': 60,
-      'rcvr-uart-baud': 420000,
-      'lock-on-first-connection': true,
-      'customised': true,
     };
+
+    if (uid.isNotEmpty && uid.any((byte) => byte != 0)) {
+      finalOptions['uid'] = uid;
+    }
+
+    finalOptions['wifi-on-interval'] = 60;
 
     if (sanitizedSsid.isNotEmpty) {
       finalOptions['wifi-ssid'] = sanitizedSsid;
       finalOptions['wifi-password'] = sanitizedPassword;
     }
+
+    finalOptions['rcvr-uart-baud'] = 420000;
+    finalOptions['lock-on-first-connection'] = true;
 
     if (domain != null) {
       updateDomainOption(finalOptions, domain);
@@ -155,10 +159,6 @@ class FirmwareAssembler {
   }
 
   static int findFirmwareEnd(Uint8List binary, String platform) {
-    return _findFirmwareEnd(binary, platform);
-  }
-
-  static int _findFirmwareEnd(Uint8List binary, String platform) {
     int pos = 0;
     if (platform == 'esp8285') pos = 0x1000;
 

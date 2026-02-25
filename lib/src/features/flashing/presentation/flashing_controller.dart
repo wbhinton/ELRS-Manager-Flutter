@@ -209,24 +209,24 @@ class FlashingController extends _$FlashingController {
       final connectivity = ref.read(connectivityServiceProvider.notifier);
       await connectivity.unbind();
 
-      final firmware = await _prepareFirmware();
+      final payload = await _buildFinalPayload();
 
       state = state.copyWith(status: FlashingStatus.patching, progress: 0.5);
 
       final targetName = state.selectedTarget!.name.replaceAll(' ', '_');
-      final downloadName = 'ELRS_${targetName}_Firmware.bin';
+      final extension = payload.filename.endsWith('.gz') ? '.gz' : '.bin';
+      final downloadName = 'ELRS_${targetName}_Firmware$extension';
 
       // Step A (Temp Storage): Save to app's temporary directory
       final tempDir = await getTemporaryDirectory();
       tempFile = File('${tempDir.path}/$downloadName');
-      await tempFile.writeAsBytes(firmware.bytes);
+      await tempFile.writeAsBytes(payload.bytes);
 
       // Step B (System Picker): Trigger native 'Save As' dialog
       final result = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Firmware Binary',
         fileName: downloadName,
-        bytes: firmware
-            .bytes, // Some platforms (Web) need bytes, others (Mobile) work from dialog
+        bytes: payload.bytes,
       );
 
       if (result != null) {
@@ -328,6 +328,73 @@ class FlashingController extends _$FlashingController {
     return (bytes: finalBytes, filename: firmwareData.filename);
   }
 
+  Future<({Uint8List bytes, String filename})> _buildFinalPayload() async {
+    final firmware = await _prepareFirmware();
+    final finalBytes = firmware.bytes;
+    final filename = firmware.filename;
+
+    String? productName;
+    String? luaName;
+    List<int>? uid;
+    Map<String, dynamic>? mergedHardwareLayout;
+
+    final targetConfig = state.selectedTarget!.config;
+    final isUnified = targetConfig.containsKey('layout_file');
+
+    if (isUnified) {
+      debugPrint('Preparing Target-Aware Build...');
+      try {
+        final cacheService = ref.read(firmwareCacheServiceProvider);
+        final zipFile = await cacheService.getHardwareZipFile(
+          state.selectedVersion!,
+        );
+        if (zipFile == null) throw Exception('Hardware zip not found');
+
+        final zipBytes = await zipFile.readAsBytes();
+        final archive = ZipDecoder().decodeBytes(zipBytes);
+
+        mergedHardwareLayout = TargetResolver.resolveLayout(
+          targetConfig,
+          archive,
+        );
+
+        productName =
+            targetConfig['product_name'] as String? ??
+            state.selectedTarget!.name;
+        luaName = targetConfig['lua_name'] as String? ?? 'ELRS';
+
+        if (state.bindPhrase.isNotEmpty) {
+          uid = FirmwareAssembler.generateUid(state.bindPhrase);
+        } else {
+          uid = FirmwareAssembler.generateUid('');
+        }
+      } catch (e) {
+        debugPrint('Warning: Failed to prepare unified build data: $e');
+        throw Exception('Failed to prepare Unified Firmware: $e');
+      }
+    }
+
+    int? finalDomain;
+    if (productName != null &&
+        (productName.contains('900') || productName.contains('433'))) {
+      finalDomain = state.regulatoryDomain;
+    }
+
+    final deviceRepo = ref.read(deviceRepositoryProvider);
+    return await deviceRepo.buildFirmwarePayload(
+      finalBytes,
+      filename,
+      productName: productName,
+      luaName: luaName,
+      uid: uid,
+      hardwareLayout: mergedHardwareLayout,
+      wifiSsid: state.wifiSsid,
+      wifiPassword: state.wifiPassword,
+      platform: state.selectedTarget!.platform,
+      domain: finalDomain,
+    );
+  }
+
   Future<void> flash({
     bool force = false,
     bool ignoreMissingBindPhrase = false,
@@ -376,9 +443,7 @@ class FlashingController extends _$FlashingController {
       // 1. Unbind process to allow firmware download via mobile data if needed
       await connectivity.unbind();
 
-      final firmware = await _prepareFirmware();
-      final finalBytes = firmware.bytes;
-      final filename = firmware.filename;
+      final payload = await _buildFinalPayload();
 
       state = state.copyWith(status: FlashingStatus.uploading, progress: 0.66);
 
@@ -388,61 +453,9 @@ class FlashingController extends _$FlashingController {
       // 3. Upload
       final deviceRepo = ref.read(deviceRepositoryProvider);
 
-      // Prepare Unified Builder parameters if applicable
-      String? productName;
-      String? luaName;
-      List<int>? uid;
-      Map<String, dynamic>? mergedHardwareLayout;
-
-      final targetConfig = state.selectedTarget!.config;
-      final isUnified = targetConfig.containsKey('layout_file');
-
-      if (isUnified) {
-        debugPrint('Preparing Target-Aware Build...');
-        try {
-          final cacheService = ref.read(firmwareCacheServiceProvider);
-          // 1. Get Hardware Zip
-          final zipFile = await cacheService.getHardwareZipFile(
-            state.selectedVersion!,
-          );
-          if (zipFile == null) throw Exception('Hardware zip not found');
-
-          final zipBytes = await zipFile.readAsBytes();
-          final archive = ZipDecoder().decodeBytes(zipBytes);
-
-          // 2. Resolve Layout
-          mergedHardwareLayout = TargetResolver.resolveLayout(
-            targetConfig,
-            archive,
-          );
-
-          productName =
-              targetConfig['product_name'] as String? ??
-              state.selectedTarget!.name;
-          luaName = targetConfig['lua_name'] as String? ?? 'ELRS';
-
-          if (state.bindPhrase.isNotEmpty) {
-            uid = FirmwareAssembler.generateUid(state.bindPhrase);
-          } else {
-            uid = FirmwareAssembler.generateUid('');
-          }
-        } catch (e) {
-          debugPrint('Warning: Failed to prepare unified build data: $e');
-          throw Exception('Failed to prepare Unified Firmware: $e');
-        }
-      }
-
       await deviceRepo.flashFirmware(
-        finalBytes,
-        filename,
-        productName: productName,
-        luaName: luaName,
-        uid: uid,
-        hardwareLayout: mergedHardwareLayout,
-        wifiSsid: state.wifiSsid,
-        wifiPassword: state.wifiPassword,
-        platform: state.selectedTarget!.platform,
-        domain: state.regulatoryDomain,
+        payload.bytes,
+        payload.filename,
         force: force,
       );
 

@@ -91,6 +91,107 @@ class DeviceRepository {
   /// Optional parameters for Unified Firmware Building (ESP only):
   /// [productName], [luaName], [uid], [hardwareLayout], [wifiSsid], [wifiPassword].
   /// If [hardwareLayout] is provided, the firmware will be built using UnifiedFirmwareBuilder.
+  Future<({Uint8List bytes, String filename})> buildFirmwarePayload(
+    Uint8List firmwareData,
+    String filename, {
+    String? productName,
+    String? luaName,
+    List<int>? uid,
+    Map<String, dynamic>? hardwareLayout,
+    String? wifiSsid,
+    String? wifiPassword,
+    String? platform,
+    int? domain,
+  }) async {
+    Uint8List dataToUpload;
+    String filenameToUpload;
+
+    // Check if Unified Building is requested/possible
+    if (hardwareLayout != null &&
+        productName != null &&
+        luaName != null &&
+        uid != null &&
+        platform != null) {
+      print('Building Unified Firmware for $productName ($platform)...');
+
+      Uint8List baseFirmware = firmwareData;
+      if (filename.endsWith('.gz')) {
+        final decompressed = GZipDecoder().decodeBytes(firmwareData);
+        baseFirmware = Uint8List.fromList(decompressed);
+      }
+
+      dataToUpload = FirmwareAssembler.assembleEspUnified(
+        firmware: baseFirmware,
+        productName: productName,
+        luaName: luaName,
+        uid: uid,
+        hardwareLayout: hardwareLayout,
+        platform: platform,
+        wifiSsid: wifiSsid ?? '',
+        wifiPassword: wifiPassword ?? '',
+        domain: domain,
+      );
+      // Unified firmware is always a .bin before compression
+      filenameToUpload = filename.endsWith('.gz')
+          ? filename.substring(0, filename.length - 3)
+          : filename;
+      if (!filenameToUpload.endsWith('.bin')) filenameToUpload += '.bin';
+
+      print('Unified Firmware Built. Size: ${dataToUpload.length} bytes');
+
+      // --- FORENSIC DEBUG: Save to Documents Directory ---
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        final debugFile = File('${directory.path}/generated_er8.bin');
+        await debugFile.writeAsBytes(dataToUpload);
+        print('I/flutter: DEBUG: Firmware saved to: ${debugFile.path}');
+        print(
+          'I/flutter: TIP: Run \'open "${directory.path}"\' in your terminal to see the file.',
+        );
+      } catch (e) {
+        print('Warning: Failed to save debug firmware file: $e');
+      }
+      // --------------------------------------------------
+    } else {
+      dataToUpload = firmwareData;
+      filenameToUpload = filename;
+    }
+
+    // Targeted Compression Logic (Task 3)
+    if (platform == 'esp8285') {
+      print('Compressing firmware for ESP8285...');
+      final compressed = GZipEncoder().encode(dataToUpload);
+      if (compressed == null) {
+        throw Exception('Failed to compress firmware payload.');
+      }
+      dataToUpload = Uint8List.fromList(compressed);
+      if (!filenameToUpload.endsWith('.gz')) filenameToUpload += '.gz';
+    } else if (platform != null && platform.startsWith('esp32')) {
+      print('Using raw bytes for ESP32 ($platform)');
+      if (filenameToUpload.endsWith('.gz')) {
+        filenameToUpload = filenameToUpload.substring(
+          0,
+          filenameToUpload.length - 3,
+        );
+      }
+    } else {
+      print('Skipping compression for platform: $platform');
+    }
+
+    int trimmingDelta = 0;
+    if (platform != null) {
+      final trimmedEnd = FirmwareAssembler.findFirmwareEnd(
+        firmwareData,
+        platform,
+      );
+      trimmingDelta = firmwareData.length - trimmedEnd;
+    }
+    print('Trimming Delta: $trimmingDelta');
+    print('Final Byte Count: ${dataToUpload.length}');
+
+    return (bytes: dataToUpload, filename: filenameToUpload);
+  }
+
   Future<void> flashFirmware(
     Uint8List firmwareData,
     String filename, {
@@ -107,89 +208,23 @@ class DeviceRepository {
     bool force = false,
   }) async {
     try {
-      Uint8List dataToUpload;
-      String filenameToUpload;
-
-      // Check if Unified Building is requested/possible
-      if (hardwareLayout != null &&
-          productName != null &&
-          luaName != null &&
-          uid != null &&
-          platform != null) {
-        print('Building Unified Firmware for $productName ($platform)...');
-        dataToUpload = FirmwareAssembler.assembleEspUnified(
-          firmware: firmwareData,
-          productName: productName,
-          luaName: luaName,
-          uid: uid,
-          hardwareLayout: hardwareLayout,
-          platform: platform,
-          wifiSsid: wifiSsid ?? '',
-          wifiPassword: wifiPassword ?? '',
-          domain: domain,
-        );
-        // Unified firmware is always a .bin before compression
-        filenameToUpload = filename.endsWith('.gz')
-            ? filename.substring(0, filename.length - 3)
-            : filename;
-        if (!filenameToUpload.endsWith('.bin')) filenameToUpload += '.bin';
-
-        print('Unified Firmware Built. Size: ${dataToUpload.length} bytes');
-
-        // --- FORENSIC DEBUG: Save to Documents Directory ---
-        try {
-          final directory = await getApplicationDocumentsDirectory();
-          final debugFile = File('${directory.path}/generated_er8.bin');
-          await debugFile.writeAsBytes(dataToUpload);
-          print('I/flutter: DEBUG: Firmware saved to: ${debugFile.path}');
-          print(
-            'I/flutter: TIP: Run \'open "${directory.path}"\' in your terminal to see the file.',
-          );
-        } catch (e) {
-          print('Warning: Failed to save debug firmware file: $e');
-        }
-        // --------------------------------------------------
-      } else {
-        dataToUpload = firmwareData;
-        filenameToUpload = filename;
-      }
-
-      // Targeted Compression Logic (Task 3)
-      if (platform == 'esp8285') {
-        print('Compressing firmware for ESP8285...');
-        final compressed = GZipEncoder().encode(dataToUpload);
-        if (compressed == null) {
-          throw Exception('Failed to compress firmware payload.');
-        }
-        dataToUpload = Uint8List.fromList(compressed);
-        if (!filenameToUpload.endsWith('.gz')) filenameToUpload += '.gz';
-      } else if (platform != null && platform.startsWith('esp32')) {
-        print('Using raw bytes for ESP32 ($platform)');
-        if (filenameToUpload.endsWith('.gz')) {
-          filenameToUpload = filenameToUpload.substring(
-            0,
-            filenameToUpload.length - 3,
-          );
-        }
-      } else {
-        print('Skipping compression for platform: $platform');
-      }
-
-      int trimmingDelta = 0;
-      if (platform != null) {
-        final trimmedEnd = FirmwareAssembler.findFirmwareEnd(
-          firmwareData,
-          platform,
-        );
-        trimmingDelta = firmwareData.length - trimmedEnd;
-      }
-      print('Trimming Delta: $trimmingDelta');
-      print('Final Byte Count: ${dataToUpload.length}');
+      final payload = await buildFirmwarePayload(
+        firmwareData,
+        filename,
+        productName: productName,
+        luaName: luaName,
+        uid: uid,
+        hardwareLayout: hardwareLayout,
+        wifiSsid: wifiSsid,
+        wifiPassword: wifiPassword,
+        platform: platform,
+        domain: domain,
+      );
 
       final formData = FormData.fromMap({
         'upload': MultipartFile.fromBytes(
-          dataToUpload,
-          filename: filenameToUpload,
+          payload.bytes,
+          filename: payload.filename,
         ),
       });
 
@@ -203,7 +238,7 @@ class DeviceRepository {
           options: Options(
             headers: {
               Headers.contentLengthHeader: evaluatedLength,
-              'X-FileSize': dataToUpload.length.toString(),
+              'X-FileSize': payload.bytes.length.toString(),
             },
             receiveTimeout: const Duration(seconds: 120),
             sendTimeout: const Duration(seconds: 120),
