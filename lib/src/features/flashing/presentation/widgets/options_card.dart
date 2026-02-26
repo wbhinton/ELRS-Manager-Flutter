@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:binary/binary.dart';
 import '../flashing_controller.dart';
 import 'version_selector.dart';
 
@@ -59,9 +58,6 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
     );
     final regulatoryDomain = ref.watch(
       flashingControllerProvider.select((s) => s.regulatoryDomain),
-    );
-    final dualBandEnabled = ref.watch(
-      flashingControllerProvider.select((s) => s.dualBandEnabled),
     );
     final target = ref.watch(
       flashingControllerProvider.select((s) => s.selectedTarget),
@@ -187,43 +183,49 @@ class _OptionsCardState extends ConsumerState<OptionsCard> {
             ),
             const SizedBox(height: 16),
 
-            // Dual-Band Toggle (Only for dual-band capable devices)
-            if (target?.isDualBand ?? false) ...[
-              SwitchListTile(
-                title: const Text('Dual-Band Mode'),
-                subtitle: const Text(
-                  'Enable concurrent 900MHz and 2.4GHz operation',
-                ),
-                value: dualBandEnabled,
-                onChanged: (value) {
-                  ref
-                      .read(flashingControllerProvider.notifier)
-                      .setDualBandEnabled(value);
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-
             // Regulatory Domain
-            DropdownButtonFormField<int>(
-              decoration: const InputDecoration(labelText: 'Regulatory Domain'),
-              // Map composite bitfield to Domain ID (bits 0-3) using package:binary
-              initialValue: Uint16(regulatoryDomain).slice(0, 3).toInt(),
-              items: const [
-                DropdownMenuItem(value: 0, child: Text('AU (915MHz)')),
-                DropdownMenuItem(value: 1, child: Text('FCC (915MHz)')),
-                DropdownMenuItem(value: 2, child: Text('EU (868MHz)')),
-                DropdownMenuItem(value: 3, child: Text('IN (866MHz)')),
-                DropdownMenuItem(value: 4, child: Text('AU (433MHz)')),
-                DropdownMenuItem(value: 5, child: Text('EU (433MHz)')),
-                DropdownMenuItem(value: 6, child: Text('US (433MHz)')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  ref
-                      .read(flashingControllerProvider.notifier)
-                      .setRegulatoryDomain(value);
+            Builder(
+              builder: (context) {
+                final is2G4Only =
+                    target != null && target.is2400Mhz && !target.isDualBand;
+                int currentDomainId = regulatoryDomain;
+
+                if (is2G4Only && currentDomainId > 1) {
+                  currentDomainId = 0;
                 }
+
+                final List<DropdownMenuItem<int>> domainItems = is2G4Only
+                    ? const [
+                        DropdownMenuItem(value: 0, child: Text('ISM (2.4GHz)')),
+                        DropdownMenuItem(
+                          value: 1,
+                          child: Text('EU CE (2.4GHz LBT)'),
+                        ),
+                      ]
+                    : const [
+                        DropdownMenuItem(value: 0, child: Text('AU (915MHz)')),
+                        DropdownMenuItem(value: 1, child: Text('FCC (915MHz)')),
+                        DropdownMenuItem(value: 2, child: Text('EU (868MHz)')),
+                        DropdownMenuItem(value: 3, child: Text('IN (866MHz)')),
+                        DropdownMenuItem(value: 4, child: Text('AU (433MHz)')),
+                        DropdownMenuItem(value: 5, child: Text('EU (433MHz)')),
+                        DropdownMenuItem(value: 6, child: Text('US (433MHz)')),
+                      ];
+
+                return DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(
+                    labelText: 'Regulatory Domain',
+                  ),
+                  value: currentDomainId,
+                  items: domainItems,
+                  onChanged: (value) {
+                    if (value != null) {
+                      ref
+                          .read(flashingControllerProvider.notifier)
+                          .setRegulatoryDomain(value);
+                    }
+                  },
+                );
               },
             ),
           ],

@@ -32,14 +32,6 @@ class MockPersistenceService implements PersistenceService {
   String getWifiPassword() => _storage['wifiPassword'] ?? '';
 
   @override
-  Future<void> setRegulatoryDomain(int value) async {
-    _storage['regulatoryDomain'] = value.toString();
-  }
-
-  @override
-  int getRegulatoryDomain() => int.parse(_storage['regulatoryDomain'] ?? '0');
-
-  @override
   Future<void> saveManualIp(String ip) async {
     _storage['manualIp'] = ip;
   }
@@ -64,7 +56,6 @@ void main() {
     await mockStorage.setBindPhrase('test_phrase');
     await mockStorage.setWifiSsid('My_WiFi');
     await mockStorage.setWifiPassword('secret_password');
-    await mockStorage.setRegulatoryDomain(1);
 
     final container = ProviderContainer(
       overrides: [
@@ -86,7 +77,6 @@ void main() {
     expect(state.wifiSsid, equals('My_WiFi'));
     // Optionally check others
     expect(state.wifiPassword, equals('secret_password'));
-    expect(state.regulatoryDomain, equals(1));
   });
 
   test('Controller updates state when user types and persists', () async {

@@ -12,7 +12,8 @@ abstract class SettingsState with _$SettingsState {
   const factory SettingsState({
     @Default(false) bool developerMode,
     @Default(false) bool forceMobileData,
-    @Default(0) int defaultRegulatoryDomain,
+    @Default(0) int defaultDomain2400,
+    @Default(1) int defaultDomain900,
     @Default('') String globalBindPhrase,
     @Default('') String homeWifiSsid,
     @Default('') String homeWifiPassword,
@@ -39,7 +40,8 @@ class SettingsController extends _$SettingsController {
     state = state.copyWith(
       developerMode: prefs.getBool('developerMode') ?? false,
       forceMobileData: prefs.getBool('forceMobileData') ?? false,
-      defaultRegulatoryDomain: persistence.getRegulatoryDomain(),
+      defaultDomain2400: prefs.getInt('defaultDomain2400') ?? 0,
+      defaultDomain900: prefs.getInt('defaultDomain900') ?? 1,
       globalBindPhrase: persistence.getBindPhrase(),
       homeWifiSsid: persistence.getWifiSsid(),
       homeWifiPassword: persistence.getWifiPassword(),
@@ -64,10 +66,16 @@ class SettingsController extends _$SettingsController {
     state = state.copyWith(forceMobileData: value);
   }
 
-  Future<void> setDefaultRegulatoryDomain(int value) async {
-    final persistence = await ref.read(persistenceServiceProvider.future);
-    await persistence.setRegulatoryDomain(value);
-    state = state.copyWith(defaultRegulatoryDomain: value);
+  Future<void> setDefaultDomain2400(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('defaultDomain2400', value);
+    state = state.copyWith(defaultDomain2400: value);
+  }
+
+  Future<void> setDefaultDomain900(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('defaultDomain900', value);
+    state = state.copyWith(defaultDomain900: value);
   }
 
   Future<void> setGlobalBindPhrase(String value) async {

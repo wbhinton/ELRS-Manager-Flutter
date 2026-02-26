@@ -79,12 +79,10 @@ void main() {
     when(() => mockStorage.getBindPhrase()).thenReturn('');
     when(() => mockStorage.getWifiSsid()).thenReturn('');
     when(() => mockStorage.getWifiPassword()).thenReturn('');
-    when(() => mockStorage.getRegulatoryDomain()).thenReturn(0);
 
     when(() => mockStorage.setBindPhrase(any())).thenAnswer((_) async {});
     when(() => mockStorage.setWifiSsid(any())).thenAnswer((_) async {});
     when(() => mockStorage.setWifiPassword(any())).thenAnswer((_) async {});
-    when(() => mockStorage.setRegulatoryDomain(any())).thenAnswer((_) async {});
   });
 
   test('Flash Action completes successfully', () async {
@@ -95,7 +93,7 @@ void main() {
       () => mockFirmwareRepo.downloadFirmware(
         any(),
         any(),
-        regulatoryDomain: any(named: 'regulatoryDomain'),
+        isLbt: any(named: 'isLbt'),
         onReceiveProgress: any(named: 'onReceiveProgress'),
       ),
     ).thenAnswer(
@@ -166,7 +164,7 @@ void main() {
       () => mockFirmwareRepo.downloadFirmware(
         any(), // 'betafpv_nano_rx.bin',
         any(), // '3.3.0',
-        regulatoryDomain: any(named: 'regulatoryDomain'),
+        isLbt: any(named: 'isLbt'),
         onReceiveProgress: any(named: 'onReceiveProgress'),
       ),
     ).called(1);
@@ -205,7 +203,7 @@ void main() {
       () => mockFirmwareRepo.downloadFirmware(
         any(),
         any(),
-        regulatoryDomain: any(named: 'regulatoryDomain'),
+        isLbt: any(named: 'isLbt'),
         onReceiveProgress: any(named: 'onReceiveProgress'),
       ),
     ).thenThrow(Exception('Network Error'));
@@ -246,7 +244,7 @@ void main() {
       () => mockFirmwareRepo.downloadFirmware(
         any(),
         any(),
-        regulatoryDomain: any(named: 'regulatoryDomain'),
+        isLbt: any(named: 'isLbt'),
         onReceiveProgress: any(named: 'onReceiveProgress'),
       ),
     ).called(1);

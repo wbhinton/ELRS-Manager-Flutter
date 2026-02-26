@@ -5,24 +5,9 @@ part 'target_definition.g.dart';
 
 @freezed
 abstract class TargetDefinition with _$TargetDefinition {
-  bool get is900Mhz =>
-      name.contains('900') ||
-      (firmware?.contains('900') ?? false) ||
-      (productCode?.contains('900') ?? false);
-
-  bool get is2400Mhz =>
-      name.contains('2400') ||
-      name.contains('2.4') ||
-      (firmware?.contains('2400') ?? false) ||
-      (firmware?.contains('2.4') ?? false) ||
-      (productCode?.contains('2400') ?? false) ||
-      (productCode?.contains('2.4') ?? false);
-
-  bool get isDualBand =>
-      (name.toLowerCase().contains('dual')) ||
-      (firmware?.toLowerCase().contains('dual') ?? false) ||
-      (productCode?.toLowerCase().contains('dual') ?? false) ||
-      (is900Mhz && is2400Mhz);
+  bool get isDualBand => frequencyType == 'Dual Band';
+  bool get is900Mhz => frequencyType == '900MHz';
+  bool get is2400Mhz => frequencyType == '2.4GHz';
 
   const TargetDefinition._();
 
@@ -50,6 +35,10 @@ abstract class TargetDefinition with _$TargetDefinition {
     // Keeping prior fields that might be useful, but making them optional/default to avoid breakages if not present
     @Default([]) List<String> upload_methods,
     @Default([]) List<String> options,
+    @Default('') String category,
+
+    @JsonKey(name: 'device_type') @Default('RX') String deviceType,
+    @JsonKey(name: 'frequency_type') @Default('2.4GHz') String frequencyType,
   }) = _TargetDefinition;
 
   factory TargetDefinition.fromJson(Map<String, dynamic> json) =>

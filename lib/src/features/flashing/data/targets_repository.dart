@@ -78,6 +78,21 @@ class TargetsRepository {
                 data['vendor'] = vendorName; // Use display name for UI
                 data['name'] ??= deviceData['product_name'] ?? deviceKey;
 
+                final parts = categoryKey.split('_');
+                if (parts.length == 2) {
+                  data['device_type'] = parts[0].toUpperCase(); // "RX" or "TX"
+                  final freq = parts[1];
+                  if (freq == '2400') {
+                    data['frequency_type'] = '2.4GHz';
+                  } else if (freq == '900') {
+                    data['frequency_type'] = '900MHz';
+                  } else if (freq == 'dual') {
+                    data['frequency_type'] = 'Dual Band';
+                  } else {
+                    data['frequency_type'] = freq;
+                  }
+                }
+
                 // category can be useful too?
                 // data['category'] = categoryKey;
 
@@ -136,6 +151,7 @@ class TargetsRepository {
                   // Extract platform
                   data['platform'] ??= deviceData['platform'];
 
+                  data['category'] = categoryKey;
                   targets.add(TargetDefinition.fromJson(data));
                 } catch (e) {
                   print('Error parsing target $deviceKey in $vendorKey: $e');

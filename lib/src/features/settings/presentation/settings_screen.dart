@@ -28,18 +28,35 @@ class SettingsScreen extends HookConsumerWidget {
         children: [
           _buildSectionHeader(context, 'Flashing Defaults'),
           ListTile(
-            title: const Text('Default Regulatory Domain'),
-            subtitle: Text(_getDomainLabel(state.defaultRegulatoryDomain)),
+            title: const Text('Default 2.4GHz Domain'),
+            subtitle: Text(_getDomainLabel2400(state.defaultDomain2400)),
             trailing: DropdownButton<int>(
-              value: state.defaultRegulatoryDomain,
+              value: state.defaultDomain2400,
               onChanged: (val) {
-                if (val != null) controller.setDefaultRegulatoryDomain(val);
+                if (val != null) controller.setDefaultDomain2400(val);
               },
               items: const [
-                DropdownMenuItem(value: 0, child: Text('FCC (915MHz)')),
-                DropdownMenuItem(value: 1, child: Text('EU (868MHz)')),
-                DropdownMenuItem(value: 2, child: Text('ISM (2.4GHz)')),
-                DropdownMenuItem(value: 3, child: Text('AU (915MHz)')),
+                DropdownMenuItem(value: 0, child: Text('ISM')),
+                DropdownMenuItem(value: 1, child: Text('EU CE LBT')),
+              ],
+            ),
+          ),
+          ListTile(
+            title: const Text('Default Sub-GHz Domain'),
+            subtitle: Text(_getDomainLabel900(state.defaultDomain900)),
+            trailing: DropdownButton<int>(
+              value: state.defaultDomain900,
+              onChanged: (val) {
+                if (val != null) controller.setDefaultDomain900(val);
+              },
+              items: const [
+                DropdownMenuItem(value: 0, child: Text('AU915')),
+                DropdownMenuItem(value: 1, child: Text('FCC915')),
+                DropdownMenuItem(value: 2, child: Text('EU868')),
+                DropdownMenuItem(value: 3, child: Text('IN866')),
+                DropdownMenuItem(value: 4, child: Text('AU433')),
+                DropdownMenuItem(value: 5, child: Text('EU433')),
+                DropdownMenuItem(value: 6, child: Text('US433')),
               ],
             ),
           ),
@@ -352,12 +369,6 @@ class SettingsScreen extends HookConsumerWidget {
       ),
     );
 
-    final domains = [
-      'FCC (915MHz)',
-      'EU (868MHz)',
-      'ISM (2.4GHz)',
-      'AU (915MHz)',
-    ];
     await Sentry.captureMessage(
       description.isNotEmpty
           ? description
@@ -368,10 +379,8 @@ class SettingsScreen extends HookConsumerWidget {
         scope.setTag('app.version', state.appVersion);
         scope.setTag('app.expert_mode', state.expertMode.toString());
         scope.setTag('app.developer_mode', state.developerMode.toString());
-        scope.setTag(
-          'app.regulatory_domain',
-          domains.elementAtOrNull(state.defaultRegulatoryDomain) ?? 'Unknown',
-        );
+        scope.setTag('app.domain_2400', state.defaultDomain2400.toString());
+        scope.setTag('app.domain_900', state.defaultDomain900.toString());
         scope.setTag(
           'app.max_cached_versions',
           state.maxCachedVersions.toString(),
@@ -413,16 +422,33 @@ class SettingsScreen extends HookConsumerWidget {
     );
   }
 
-  String _getDomainLabel(int value) {
+  String _getDomainLabel2400(int value) {
     switch (value) {
       case 0:
-        return 'FCC (915MHz)';
+        return 'ISM';
       case 1:
-        return 'EU (868MHz)';
+        return 'EU CE LBT';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String _getDomainLabel900(int value) {
+    switch (value) {
+      case 0:
+        return 'AU915';
+      case 1:
+        return 'FCC915';
       case 2:
-        return 'ISM (2.4GHz)';
+        return 'EU868';
       case 3:
-        return 'AU (915MHz)';
+        return 'IN866';
+      case 4:
+        return 'AU433';
+      case 5:
+        return 'EU433';
+      case 6:
+        return 'US433';
       default:
         return 'Unknown';
     }

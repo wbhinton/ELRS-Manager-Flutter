@@ -9,10 +9,19 @@ class TargetSelectionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vendors = ref.watch(uniqueVendorsProvider);
-    final devices = ref.watch(devicesForVendorProvider);
+    final deviceTypes = ref.watch(availableDeviceTypesProvider);
+    final vendors = ref.watch(availableVendorsProvider);
+    final frequencies = ref.watch(availableFrequenciesProvider);
+    final devices = ref.watch(availableTargetsListProvider);
+
+    final selectedDeviceType = ref.watch(
+      flashingControllerProvider.select((s) => s.selectedDeviceType),
+    );
     final selectedVendor = ref.watch(
       flashingControllerProvider.select((s) => s.selectedVendor),
+    );
+    final selectedFrequency = ref.watch(
+      flashingControllerProvider.select((s) => s.selectedFrequency),
     );
     final selectedTarget = ref.watch(
       flashingControllerProvider.select((s) => s.selectedTarget),
@@ -36,46 +45,80 @@ class TargetSelectionCard extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            // Vendor Dropdown
+            // 1. Device Type Dropdown
             DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Device Vendor'),
-              initialValue: selectedVendor,
-              items: vendors.map((vendor) {
-                return DropdownMenuItem(value: vendor, child: Text(vendor));
+              decoration: const InputDecoration(labelText: 'Device Type'),
+              value: selectedDeviceType,
+              items: deviceTypes.map((type) {
+                return DropdownMenuItem(value: type, child: Text(type));
               }).toList(),
               onChanged: (value) {
                 ref
                     .read(flashingControllerProvider.notifier)
-                    .selectVendor(value);
+                    .selectDeviceType(value);
               },
             ),
             const SizedBox(height: 16),
 
-            // Device Dropdown
+            // 2. Vendor Dropdown
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(labelText: 'Device Vendor'),
+              value: selectedVendor,
+              items: vendors.map((vendor) {
+                return DropdownMenuItem(value: vendor, child: Text(vendor));
+              }).toList(),
+              onChanged: selectedDeviceType == null
+                  ? null
+                  : (value) {
+                      ref
+                          .read(flashingControllerProvider.notifier)
+                          .selectVendor(value);
+                    },
+            ),
+            const SizedBox(height: 16),
+
+            // 3. Frequency Dropdown
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: 'Regulatory & Frequency',
+              ),
+              value: selectedFrequency,
+              items: frequencies.map((freq) {
+                return DropdownMenuItem(value: freq, child: Text(freq));
+              }).toList(),
+              onChanged: selectedVendor == null
+                  ? null
+                  : (value) {
+                      ref
+                          .read(flashingControllerProvider.notifier)
+                          .selectFrequency(value);
+                    },
+            ),
+            const SizedBox(height: 16),
+
+            // 4. Device Target Dropdown
             DropdownButtonFormField<TargetDefinition>(
               decoration: const InputDecoration(labelText: 'Device Target'),
-              initialValue: selectedTarget,
-              // If no vendor selected, disable the dropdown
-              items: selectedVendor == null
+              value: selectedTarget,
+              items: selectedFrequency == null
                   ? []
                   : devices.map((device) {
                       return DropdownMenuItem(
                         value: device,
-                        // Show Name and Product Code
                         child: Text(
                           '${device.name} ${device.productCode != null ? "(${device.productCode})" : ""}',
                           overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
-              onChanged: selectedVendor == null
+              onChanged: selectedFrequency == null
                   ? null
                   : (value) {
                       ref
                           .read(flashingControllerProvider.notifier)
                           .selectTarget(value);
                     },
-              isExpanded: true, // Handle long text
+              isExpanded: true,
             ),
           ],
         ),

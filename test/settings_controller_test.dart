@@ -8,7 +8,7 @@ void main() {
   setUp(() {
     // 1. Setup: Mock the OS (Empty SharedPreferences)
     SharedPreferences.setMockInitialValues({});
-    
+
     // Mock PackageInfo
     PackageInfo.setMockInitialValues(
       appName: 'ELRS Configurator',
@@ -25,7 +25,7 @@ void main() {
     addTearDown(container.dispose);
 
     final controller = container.read(settingsControllerProvider.notifier);
-    
+
     // Act: Load settings
     await controller.loadSettings();
 
@@ -34,7 +34,8 @@ void main() {
     expect(state.developerMode, false);
     expect(state.forceMobileData, false);
     expect(state.appVersion, '1.0.0');
-    expect(state.defaultRegulatoryDomain, 0); // Default is 0 per state definition
+    expect(state.defaultDomain2400, 0);
+    expect(state.defaultDomain900, 1);
   });
 
   test('Toggling Developer Mode saves to disk', () async {
@@ -56,7 +57,7 @@ void main() {
     expect(prefs.getBool('developerMode'), true);
   });
 
-  test('Setting Regulatory Domain updates state', () async {
+  test('Setting Regulatory Domains updates state', () async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
@@ -64,13 +65,16 @@ void main() {
     await controller.loadSettings();
 
     // Act
-    await controller.setDefaultRegulatoryDomain(1); // Set to EU
+    await controller.setDefaultDomain2400(1); // Set to EU
+    await controller.setDefaultDomain900(2); // Set to EU868
 
     // Assert
     final state = container.read(settingsControllerProvider);
-    expect(state.defaultRegulatoryDomain, 1);
-    
+    expect(state.defaultDomain2400, 1);
+    expect(state.defaultDomain900, 2);
+
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getInt('defaultRegulatoryDomain'), 1);
+    expect(prefs.getInt('defaultDomain2400'), 1);
+    expect(prefs.getInt('defaultDomain900'), 2);
   });
 }

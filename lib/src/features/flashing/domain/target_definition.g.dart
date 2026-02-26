@@ -24,6 +24,9 @@ _TargetDefinition _$TargetDefinitionFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      category: json['category'] as String? ?? '',
+      deviceType: json['device_type'] as String? ?? 'RX',
+      frequencyType: json['frequency_type'] as String? ?? '2.4GHz',
     );
 
 Map<String, dynamic> _$TargetDefinitionToJson(_TargetDefinition instance) =>
@@ -36,4 +39,7 @@ Map<String, dynamic> _$TargetDefinitionToJson(_TargetDefinition instance) =>
       'platform': instance.platform,
       'upload_methods': instance.upload_methods,
       'options': instance.options,
+      'category': instance.category,
+      'device_type': instance.deviceType,
+      'frequency_type': instance.frequencyType,
     };

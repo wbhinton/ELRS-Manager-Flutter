@@ -9,25 +9,25 @@ part of 'target_selectors.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(uniqueVendors)
-final uniqueVendorsProvider = UniqueVendorsProvider._();
+@ProviderFor(availableDeviceTypes)
+final availableDeviceTypesProvider = AvailableDeviceTypesProvider._();
 
-final class UniqueVendorsProvider
+final class AvailableDeviceTypesProvider
     extends $FunctionalProvider<List<String>, List<String>, List<String>>
     with $Provider<List<String>> {
-  UniqueVendorsProvider._()
+  AvailableDeviceTypesProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'uniqueVendorsProvider',
+        name: r'availableDeviceTypesProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$uniqueVendorsHash();
+  String debugGetCreateSourceHash() => _$availableDeviceTypesHash();
 
   @$internal
   @override
@@ -36,7 +36,7 @@ final class UniqueVendorsProvider
 
   @override
   List<String> create(Ref ref) {
-    return uniqueVendors(ref);
+    return availableDeviceTypes(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -48,12 +48,96 @@ final class UniqueVendorsProvider
   }
 }
 
-String _$uniqueVendorsHash() => r'21b470381c26c27689bc4346150eb828e0d405ea';
+String _$availableDeviceTypesHash() =>
+    r'5bd93a6cda77b8f9b62a5ec453f9409bc3e37332';
 
-@ProviderFor(devicesForVendor)
-final devicesForVendorProvider = DevicesForVendorProvider._();
+@ProviderFor(availableVendors)
+final availableVendorsProvider = AvailableVendorsProvider._();
 
-final class DevicesForVendorProvider
+final class AvailableVendorsProvider
+    extends $FunctionalProvider<List<String>, List<String>, List<String>>
+    with $Provider<List<String>> {
+  AvailableVendorsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'availableVendorsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$availableVendorsHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<String>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<String> create(Ref ref) {
+    return availableVendors(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<String>>(value),
+    );
+  }
+}
+
+String _$availableVendorsHash() => r'7960899ffedc00ca283027ac8cefeb8a20f6e7b1';
+
+@ProviderFor(availableFrequencies)
+final availableFrequenciesProvider = AvailableFrequenciesProvider._();
+
+final class AvailableFrequenciesProvider
+    extends $FunctionalProvider<List<String>, List<String>, List<String>>
+    with $Provider<List<String>> {
+  AvailableFrequenciesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'availableFrequenciesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$availableFrequenciesHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<String>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<String> create(Ref ref) {
+    return availableFrequencies(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<String>>(value),
+    );
+  }
+}
+
+String _$availableFrequenciesHash() =>
+    r'e82b2b7d91cc49b98f433368fb89fb92bffa7f8e';
+
+@ProviderFor(availableTargetsList)
+final availableTargetsListProvider = AvailableTargetsListProvider._();
+
+final class AvailableTargetsListProvider
     extends
         $FunctionalProvider<
           List<TargetDefinition>,
@@ -61,19 +145,19 @@ final class DevicesForVendorProvider
           List<TargetDefinition>
         >
     with $Provider<List<TargetDefinition>> {
-  DevicesForVendorProvider._()
+  AvailableTargetsListProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'devicesForVendorProvider',
+        name: r'availableTargetsListProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$devicesForVendorHash();
+  String debugGetCreateSourceHash() => _$availableTargetsListHash();
 
   @$internal
   @override
@@ -83,7 +167,7 @@ final class DevicesForVendorProvider
 
   @override
   List<TargetDefinition> create(Ref ref) {
-    return devicesForVendor(ref);
+    return availableTargetsList(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -95,4 +179,5 @@ final class DevicesForVendorProvider
   }
 }
 
-String _$devicesForVendorHash() => r'b9037c1f77873518ae6c74ff5363134fdaff84a4';
+String _$availableTargetsListHash() =>
+    r'6c9462429f174bdb784b7ad3ec770c2440828c95';

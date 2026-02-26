@@ -33,7 +33,7 @@ class FirmwareRepository {
   Future<FirmwareData> downloadFirmware(
     String targetName,
     String version, {
-    int regulatoryDomain = 0, // 0 = FCC, 1 = LBT (EU)
+    bool isLbt = false,
     void Function(int, int)? onReceiveProgress,
   }) async {
     try {
@@ -43,11 +43,7 @@ class FirmwareRepository {
       );
       print('Zip downloaded (${zipBytes.length} bytes). Extracting...');
 
-      return extractFirmwareFromZip(
-        zipBytes,
-        targetName,
-        regulatoryDomain: regulatoryDomain,
-      );
+      return extractFirmwareFromZip(zipBytes, targetName, isLbt: isLbt);
     } catch (e) {
       print('Firmware download error: $e');
       throw Exception('Failed to download/extract firmware: $e');
@@ -137,7 +133,7 @@ class FirmwareRepository {
   Future<FirmwareData> extractFirmwareFromZip(
     List<int> zipBytes,
     String targetName, {
-    int regulatoryDomain = 0,
+    bool isLbt = false,
   }) async {
     try {
       // 3. Extract & Search
@@ -165,14 +161,13 @@ class FirmwareRepository {
             // Check Domain
             // Domain 0 = FCC? Usually 'FCC' folder.
             // Domain 1 = LBT (EU)? Usually 'LBT' folder.
-            final isLbt = name.contains('/LBT/');
-            final isFcc = name.contains('/FCC/'); // Or just not LBT?
+            final isLbtFolder = name.contains('/LBT/');
+            final isFccFolder = name.contains('/FCC/');
 
-            if (regulatoryDomain == 1 && isLbt) {
+            if (isLbt && isLbtFolder) {
               matchedFile = file;
               break;
-            } else if (regulatoryDomain == 0 && (isFcc || !isLbt)) {
-              // Prefer FCC or non-LBT
+            } else if (!isLbt && (isFccFolder || !isLbtFolder)) {
               matchedFile = file;
               break;
             }

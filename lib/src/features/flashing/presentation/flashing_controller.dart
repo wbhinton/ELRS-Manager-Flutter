@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:binary/binary.dart';
 
 import '../application/firmware_patcher.dart';
 import '../domain/patch_configuration.dart';
@@ -41,7 +40,9 @@ enum FlashingStatus {
 @freezed
 abstract class FlashingState with _$FlashingState {
   const factory FlashingState({
+    String? selectedDeviceType,
     String? selectedVendor,
+    String? selectedFrequency,
     TargetDefinition? selectedTarget,
     String? selectedVersion,
     @Default(FlashingStatus.idle) FlashingStatus status,
@@ -51,7 +52,6 @@ abstract class FlashingState with _$FlashingState {
     @Default('') String wifiSsid,
     @Default('') String wifiPassword,
     @Default(0) int regulatoryDomain,
-    @Default(false) bool dualBandEnabled,
     String? autosavingField,
   }) = _FlashingState;
 }
@@ -60,7 +60,6 @@ abstract class FlashingState with _$FlashingState {
 class FlashingController extends _$FlashingController {
   @override
   FlashingState build() {
-    // Listen for global settings changes and sync them to local state
     ref.listen(settingsControllerProvider, (previous, next) {
       if (previous?.globalBindPhrase != next.globalBindPhrase) {
         state = state.copyWith(bindPhrase: next.globalBindPhrase);
@@ -71,9 +70,6 @@ class FlashingController extends _$FlashingController {
       if (previous?.homeWifiPassword != next.homeWifiPassword) {
         state = state.copyWith(wifiPassword: next.homeWifiPassword);
       }
-      if (previous?.defaultRegulatoryDomain != next.defaultRegulatoryDomain) {
-        state = state.copyWith(regulatoryDomain: next.defaultRegulatoryDomain);
-      }
     });
 
     // Initialize with current settings values
@@ -83,7 +79,7 @@ class FlashingController extends _$FlashingController {
       bindPhrase: settings.globalBindPhrase,
       wifiSsid: settings.homeWifiSsid,
       wifiPassword: settings.homeWifiPassword,
-      regulatoryDomain: settings.defaultRegulatoryDomain,
+      regulatoryDomain: settings.defaultDomain2400, // Default initialization
     );
   }
 
@@ -92,19 +88,33 @@ class FlashingController extends _$FlashingController {
     final bindPhrase = persistence.getBindPhrase();
     final wifiSsid = persistence.getWifiSsid();
     final wifiPassword = persistence.getWifiPassword();
-    final regulatoryDomain = persistence.getRegulatoryDomain();
 
     state = state.copyWith(
       bindPhrase: bindPhrase,
       wifiSsid: wifiSsid,
       wifiPassword: wifiPassword,
-      regulatoryDomain: regulatoryDomain,
+    );
+  }
+
+  void selectDeviceType(String? type) {
+    state = state.copyWith(
+      selectedDeviceType: type,
+      selectedVendor: null,
+      selectedFrequency: null,
+      selectedTarget: null,
     );
   }
 
   void selectVendor(String? vendor) {
-    // Reset target when vendor changes
-    state = state.copyWith(selectedVendor: vendor, selectedTarget: null);
+    state = state.copyWith(
+      selectedVendor: vendor,
+      selectedFrequency: null,
+      selectedTarget: null,
+    );
+  }
+
+  void selectFrequency(String? freq) {
+    state = state.copyWith(selectedFrequency: freq, selectedTarget: null);
   }
 
   void selectTarget(TargetDefinition? target) {
@@ -113,25 +123,6 @@ class FlashingController extends _$FlashingController {
 
   void selectVersion(String? version) {
     state = state.copyWith(selectedVersion: version);
-  }
-
-  /// Corrects the regulatory mapping for dual-band hardware.
-  Uint16 updateRegulatoryMapping({
-    required int currentRegInteger,
-    required int newDomainId,
-    required bool dualBandEnabled,
-  }) {
-    // Wrap existing data in Uint16 to preserve higher-order configuration bits.
-    final currentVal = Uint16(currentRegInteger);
-
-    // 1. Modify: Replace the domain ID (bits 0-3).
-    var updatedVal = currentVal.replace(0, 3, newDomainId);
-
-    // 2. Modify: Inject the Dual-Band toggle flag at bit 7.
-    // This ensures no 'clobbering' of bits 4-6 or 8-15.
-    updatedVal = updatedVal.replace(7, 7, dualBandEnabled ? 1 : 0);
-
-    return updatedVal;
   }
 
   Future<void> setBindPhrase(String value) async {
@@ -156,28 +147,7 @@ class FlashingController extends _$FlashingController {
   }
 
   Future<void> setRegulatoryDomain(int id) async {
-    final updatedMapping = updateRegulatoryMapping(
-      currentRegInteger: state.regulatoryDomain,
-      newDomainId: id,
-      dualBandEnabled: state.dualBandEnabled,
-    );
-    state = state.copyWith(regulatoryDomain: updatedMapping.toInt());
-    final persistence = await ref.read(persistenceServiceProvider.future);
-    await persistence.setRegulatoryDomain(state.regulatoryDomain);
-  }
-
-  Future<void> setDualBandEnabled(bool enabled) async {
-    final updatedMapping = updateRegulatoryMapping(
-      currentRegInteger: state.regulatoryDomain,
-      newDomainId: state.regulatoryDomain & 0xF, // Extract bits 0-3
-      dualBandEnabled: enabled,
-    );
-    state = state.copyWith(
-      dualBandEnabled: enabled,
-      regulatoryDomain: updatedMapping.toInt(),
-    );
-    final persistence = await ref.read(persistenceServiceProvider.future);
-    await persistence.setRegulatoryDomain(state.regulatoryDomain);
+    state = state.copyWith(regulatoryDomain: id);
   }
 
   void _triggerAutosaveFeedback(String field) {
@@ -213,7 +183,10 @@ class FlashingController extends _$FlashingController {
 
       state = state.copyWith(status: FlashingStatus.patching, progress: 0.5);
 
-      final targetName = state.selectedTarget!.name.replaceAll(' ', '_');
+      final targetName = state.selectedTarget!.name
+          .replaceAll(' ', '_')
+          .replaceAll('/', '_') // Sanitize slashes (e.g. 2.4/900)
+          .replaceAll('\\', '_');
       final extension = payload.filename.endsWith('.gz') ? '.gz' : '.bin';
       final downloadName = 'ELRS_${targetName}_Firmware$extension';
 
@@ -262,6 +235,20 @@ class FlashingController extends _$FlashingController {
   Future<({Uint8List bytes, String filename})> _prepareFirmware() async {
     FirmwareData firmwareData;
 
+    final target = state.selectedTarget;
+    final domainId = state.regulatoryDomain & 0x0F;
+    bool isLbt = false;
+
+    if (target != null) {
+      if (target.is2400Mhz && !target.isDualBand) {
+        isLbt = (domainId == 1); // 1 = EU LBT in 2.4GHz dropdown
+      } else if (target.isDualBand) {
+        isLbt =
+            (domainId == 2 ||
+            domainId == 5); // EU868 or EU433 in Sub-GHz dropdown
+      }
+    }
+
     // Check for cached version
     final cacheService = ref.read(firmwareCacheServiceProvider);
     final cachedZip = await cacheService.getZipFile(state.selectedVersion!);
@@ -277,7 +264,7 @@ class FlashingController extends _$FlashingController {
             state.selectedTarget!.firmware ??
                 state.selectedTarget!.productCode ??
                 'unknown',
-            regulatoryDomain: state.regulatoryDomain,
+            isLbt: isLbt,
           );
     } else {
       // Download from Artifactory
@@ -298,7 +285,7 @@ class FlashingController extends _$FlashingController {
                 );
               }
             },
-            regulatoryDomain: state.regulatoryDomain,
+            isLbt: isLbt,
           );
     }
 
@@ -386,8 +373,7 @@ class FlashingController extends _$FlashingController {
                 productName.toLowerCase().contains('dual')));
 
     if (isSubGhzOrDual) {
-      // Extract ONLY the domain ID (bits 0-3) by masking with 0x0F
-      finalDomain = state.regulatoryDomain & 0x0F;
+      finalDomain = state.regulatoryDomain;
     }
 
     final deviceRepo = ref.read(deviceRepositoryProvider);
