@@ -1,0 +1,47 @@
+This file contains audit logs from the audit_tool.py. The logs indicate a divergence between the ELRS configurator (file name contains golden) and the Web Flasher (file name contains wf)
+
+Ground Truth Audit Report - 2026-02-26 11:36:03.346790
+File 1: ..\..\binaries\ELRS_BETAFPV_SuperP_14Ch_2.4GHz_RX_Firmware.bin (fd29c1c32a17b30d5c4de40e08b5048a9f2f15b9dc2447738981a810b7db1c94)
+File 2: ..\..\binaries\betafpv_superP_wf.bin (428dfad475d0b7c55137207d7ec7f4a7505d4904fa1bcd612e34b29ec5fd3593)
+
+MATCH: Product Name
+MATCH: Lua Name
+MATCH: Options JSON (ignoring randomized discriminator)
+MATCH: Hardware JSON
+
+Ground Truth Audit Report - 2026-02-26 11:19:49.400235
+File 1: ..\..\binaries\ELRS_BETAFPV_SuperP_14Ch_2.4GHz_RX_Firmware.bin (fd29c1c32a17b30d5c4de40e08b5048a9f2f15b9dc2447738981a810b7db1c94)
+File 2: ..\..\binaries\betafpv_superP_golden.bin (cf6f67a66074fd64b9faea5d609fada019f6ab8b7c72bef29b8b09c2fb97369a)
+
+MATCH: Product Name
+MATCH: Lua Name
+DIVERGENCE in Options JSON:
+  File 1: {"flash-discriminator":2584465619,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","rcvr-uart-baud":420000,"lock-on-first-connection":true}
+  File 2: {"uid": [237, 135, 182, 184, 88, 164], "wifi-ssid": "testssid", "wifi-password": "testpass", "wifi-on-interval": 60, "lock-on-first-connection": true, "flash-discriminator": 3481386452}
+DIVERGENCE in Hardware JSON:
+  File 1: {"radio_miso":35,"radio_mosi":32,"radio_rst":25,"radio_sck":33,"radio_busy":37,"radio_dio1":38,"radio_nss":26,"radio_busy_2":39,"radio_dio1_2":34,"radio_nss_2":27,"power_txen":14,"power_txen_2":12,"power_lna_gain":12,"power_min":0,"power_high":3,"power_max":3,"power_default":3,"power_control":0,"power_values":[-10,-6,-3,1],"led_rgb":21,"led_rgb_isgrb":true,"ledidx_rgb_status":[0],"ledidx_rgb_boot":[0],"pwm_outputs":[13,15,2,0,4,9,10,5,18,23,19,22,3,1],"vbat":36,"vbat_offset":18,"vbat_scale":1284,"vbat_atten":7,"radio_dcdc":true,"i2c_scl":19,"i2c_sda":22}
+  File 2: {"radio_miso": 35, "radio_mosi": 32, "radio_rst": 25, "radio_sck": 33, "radio_busy": 37, "radio_dio1": 38, "radio_nss": 26, "radio_busy_2": 39, "radio_dio1_2": 34, "radio_nss_2": 27, "power_txen": 14, "power_txen_2": 12, "power_lna_gain": 12, "power_min": 0, "power_high": 3, "power_max": 3, "power_default": 3, "power_control": 0, "power_values": [-10, -6, -3, 1], "led_rgb": 21, "led_rgb_isgrb": true, "ledidx_rgb_status": [0], "ledidx_rgb_boot": [0], "pwm_outputs": [13, 15, 2, 0, 4, 9, 10, 5, 18, 23, 19, 22, 3, 1], "vbat": 36, "vbat_offset": 18, "vbat_scale": 1284, "vbat_atten": 7, "radio_dcdc": true, "i2c_scl": 19, "i2c_sda": 22}
+
+
+Ground Truth Audit Report - 2026-02-26 11:37:56.426479
+File 1: ..\..\binaries\ELRS_GEPRC_C3_900_2400_Gemini_Xrossband_RX_Firmware.bin (620aae9669f64c1e9a6c5093d8a5a52c59f689bf0c56dfd5213180071279e99a)
+File 2: ..\..\binaries\geprx_C3_900_2400_wf.bin (d9d45efb55ebdc1fb6e42eadb37b1206f5dd58d750b5a9b1ac39dd12a01fc14e)
+
+MATCH: Product Name
+MATCH: Lua Name
+MATCH: Options JSON (ignoring randomized discriminator)
+MATCH: Hardware JSON
+
+
+Ground Truth Audit Report - 2026-02-26 11:22:32.597898
+File 1: ..\..\binaries\ELRS_GEPRC_C3_900_2400_Gemini_Xrossband_RX_Firmware.bin (620aae9669f64c1e9a6c5093d8a5a52c59f689bf0c56dfd5213180071279e99a)
+File 2: ..\..\binaries\geprc_C3_900_2400_golden.bin (ee52b6fbf4212a41995c43b6486ec7f049db8a2bf0ee58099e0c28623761ac60)
+
+MATCH: Product Name
+MATCH: Lua Name
+DIVERGENCE in Options JSON:
+  File 1: {"flash-discriminator":2584270984,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","rcvr-uart-baud":420000,"lock-on-first-connection":true,"domain":1}
+  File 2: {"uid": [237, 135, 182, 184, 88, 164], "wifi-ssid": "testssid", "wifi-password": "testpass", "wifi-on-interval": 60, "lock-on-first-connection": true, "domain": 1, "flash-discriminator": 1241231134}
+DIVERGENCE in Hardware JSON:
+  File 1: {"serial_rx":20,"serial_tx":21,"radio_miso":5,"radio_mosi":4,"radio_sck":6,"radio_busy":3,"radio_dio1":1,"radio_nss":0,"radio_rst":2,"radio_busy_2":8,"radio_dio1_2":18,"radio_nss_2":7,"radio_rst_2":10,"power_min":0,"power_high":3,"power_max":3,"power_default":0,"power_control":0,"power_values":[12,16,19,26],"power_values_dual":[-10,-6,-3,13],"power_lna_gain":12,"led_rgb":19,"led_rgb_isgrb":true,"radio_dcdc":true,"button":9,"radio_rfsw_ctrl":[15,0,8,4,4,14,0,13]}
+  File 2: {"serial_rx": 20, "serial_tx": 21, "radio_miso": 5, "radio_mosi": 4, "radio_sck": 6, "radio_busy": 3, "radio_dio1": 1, "radio_nss": 0, "radio_rst": 2, "radio_busy_2": 8, "radio_dio1_2": 18, "radio_nss_2": 7, "radio_rst_2": 10, "power_min": 0, "power_high": 3, "power_max": 3, "power_default": 0, "power_control": 0, "power_values": [12, 16, 19, 26], "power_values_dual": [-10, -6, -3, 13], "power_lna_gain": 12, "led_rgb": 19, "led_rgb_isgrb": true, "radio_dcdc": true, "button": 9, "radio_rfsw_ctrl": [15, 0, 8, 4, 4, 14, 0, 13]}

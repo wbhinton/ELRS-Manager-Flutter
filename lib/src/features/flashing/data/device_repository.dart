@@ -102,6 +102,7 @@ class DeviceRepository {
     String? wifiPassword,
     String? platform,
     int? domain,
+    bool isTx = false,
   }) async {
     Uint8List dataToUpload;
     String filenameToUpload;
@@ -130,6 +131,7 @@ class DeviceRepository {
         wifiSsid: wifiSsid ?? '',
         wifiPassword: wifiPassword ?? '',
         domain: domain,
+        isTx: isTx,
       );
       // Unified firmware is always a .bin before compression
       filenameToUpload = filename.endsWith('.gz')
@@ -206,6 +208,7 @@ class DeviceRepository {
     String? platform,
     int? domain,
     bool force = false,
+    bool isTx = false,
   }) async {
     try {
       final payload = await buildFirmwarePayload(
@@ -219,6 +222,7 @@ class DeviceRepository {
         wifiPassword: wifiPassword,
         platform: platform,
         domain: domain,
+        isTx: isTx,
       );
 
       final formData = FormData.fromMap({

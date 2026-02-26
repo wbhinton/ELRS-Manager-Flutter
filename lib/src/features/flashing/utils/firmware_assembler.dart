@@ -69,6 +69,7 @@ class FirmwareAssembler {
     String wifiPassword = '',
     int? flashDiscriminator,
     int? domain,
+    required bool isTx,
   }) {
     final builder = BytesBuilder();
 
@@ -98,21 +99,27 @@ class FirmwareAssembler {
       'flash-discriminator':
           flashDiscriminator ??
           Uint32.fromWrapped(DateTime.now().millisecondsSinceEpoch).toInt(),
+      'wifi-on-interval': 60,
     };
+
+    if (isTx) {
+      finalOptions['tlm-interval'] = 240;
+      finalOptions['fan-runtime'] = 30;
+      finalOptions['uart-inverted'] = true;
+      finalOptions['unlock-higher-power'] = false;
+    } else {
+      finalOptions['rcvr-uart-baud'] = 420000;
+      finalOptions['lock-on-first-connection'] = true;
+    }
 
     if (uid.isNotEmpty && uid.any((byte) => byte != 0)) {
       finalOptions['uid'] = uid;
     }
 
-    finalOptions['wifi-on-interval'] = 60;
-
     if (sanitizedSsid.isNotEmpty) {
       finalOptions['wifi-ssid'] = sanitizedSsid;
       finalOptions['wifi-password'] = sanitizedPassword;
     }
-
-    finalOptions['rcvr-uart-baud'] = 420000;
-    finalOptions['lock-on-first-connection'] = true;
 
     if (domain != null) {
       updateDomainOption(finalOptions, domain);

@@ -1,0 +1,40 @@
+This file contains audit logs from the audit_tool.py. The logs indicate an issue with flashing TX modules. The mobile app is not populating the json options correctly. 
+
+Ground Truth Audit Report - 2026-02-26 11:44:59.768904
+File 1: ..\..\binaries\ELRS_RadioMaster_Nomad_2.4_900_TX_Firmware.bin (8e518f459440d98a976b65e3220c7438ebacc8ba43a8f84133f6ee259c31da98)
+File 2: ..\..\binaries\radiomaster_nomad_wf.bin (9eb4ec9df0523a61ff5ed250bf16cf7419f602bd363364dbcd6910a972c79d4f)
+
+MATCH: Product Name
+MATCH: Lua Name
+DIVERGENCE in Options JSON:
+  File 1: {"flash-discriminator":2584418868,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","rcvr-uart-baud":420000,"lock-on-first-connection":true,"domain":1}
+  File 2: {"flash-discriminator":2131891682,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","tlm-interval":240,"fan-runtime":30,"uart-inverted":true,"unlock-higher-power":false,"domain":1}
+MATCH: Hardware JSON
+
+
+Ground Truth Audit Report - 2026-02-26 11:42:59.395214
+File 1: ..\..\binaries\ELRS_HappyModel_ES900_TX_Firmware.bin (7810c1d4040e44b128f3d0b1aa8fcf3104292e83aac9fd3721e0359d340161a5)
+File 2: ..\..\binaries\happymodel_ES900_TX_wf.bin (14507e86f34a6f5622b343e4aa0a45eea809dc029c7983cab0f6afd75adf53a7)
+
+MATCH: Product Name
+MATCH: Lua Name
+DIVERGENCE in Options JSON:
+  File 1: {"flash-discriminator":2584541413,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","rcvr-uart-baud":420000,"lock-on-first-connection":true,"domain":1}
+  File 2: {"flash-discriminator":1108317910,"uid":[237,135,182,184,88,164],"wifi-on-interval":60,"wifi-ssid":"testssid","wifi-password":"testpass","tlm-interval":240,"fan-runtime":30,"uart-inverted":true,"unlock-higher-power":false,"domain":1}
+MATCH: Hardware JSON
+
+
+Ground Truth Audit Report - 2026-02-26 11:33:41.285621
+File 1: ..\..\binaries\ELRS_BETAFPV_2.4GHz_Micro_TX_Firmware.bin (3940ca4ccdf300f2a30f8e56504b4ade4cb8ceb874cefb28eaa4e03b581fb5aa)
+File 2: ..\..\binaries\happymodel_24_micro_tx_wf.bin (2f7788a2886c53e7fa2076eac989f93a4caeb8e68759530d362c7f0961074bc2)
+
+DIVERGENCE in Product Name:
+  File 1: Unified
+  File 2: led_rgb":16,"led_rgb_isgrb":true,"screen_sck":32,"screen_sda":22,"screen_type":1,"screen_reversed":1,"use_backpack":true,"debug_
+DIVERGENCE in Lua Name:
+  File 1: Unified
+  File 2: backpack_baud":4
+DIVERGENCE in Options JSON:
+  File 1: {"flash-discriminator": 232055470, "wifi-on-interval": 60, "domain": 0}
+  File 2: 60800,"debug_backpack_rx":3,"debug_backpack_tx":1,"misc_fan_en":17}
+MATCH: Hardware JSON

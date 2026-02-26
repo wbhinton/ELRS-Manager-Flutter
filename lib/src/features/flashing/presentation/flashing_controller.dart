@@ -377,6 +377,7 @@ class FlashingController extends _$FlashingController {
     }
 
     final deviceRepo = ref.read(deviceRepositoryProvider);
+    final isTx = state.selectedTarget?.deviceType == 'TX';
     return await deviceRepo.buildFirmwarePayload(
       finalBytes,
       filename,
@@ -388,6 +389,7 @@ class FlashingController extends _$FlashingController {
       wifiPassword: state.wifiPassword,
       platform: state.selectedTarget!.platform,
       domain: finalDomain,
+      isTx: isTx,
     );
   }
 
@@ -448,11 +450,13 @@ class FlashingController extends _$FlashingController {
 
       // 3. Upload
       final deviceRepo = ref.read(deviceRepositoryProvider);
+      final isTx = state.selectedTarget?.deviceType == 'TX';
 
       await deviceRepo.flashFirmware(
         payload.bytes,
         payload.filename,
         force: force,
+        isTx: isTx,
       );
 
       ref.read(isFlashingProvider.notifier).setFlashing(false);
