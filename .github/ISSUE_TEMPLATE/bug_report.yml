@@ -1,64 +1,101 @@
-name: Bug Report
+name: 🐛 Bug Report
 description: Create a report to help us improve ELRS Mobile
-labels: [bug]
+title: "[BUG] "
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to report this! Please provide as detailed information as possible so we can effectively reproduce and fix the bug.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Basic Troubleshooting
+      description: Please verify the following before submitting your report.
+      options:
+        - label: I am using the **latest GitHub release** of ELRS Mobile.
+          required: true
+        - label: My phone was **actively connected** to the ELRS hardware Wi-Fi hotspot when this occurred.
+          required: true
+
   - type: textarea
     id: description
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is.
+      label: Bug Description
+      description: What is the actual behavior versus the expected behavior?
+      placeholder: Describe the bug in detail...
     validations:
       required: true
-  - type: input
-    id: phone-model
-    attributes:
-      label: Phone Model
-      description: e.g., Pixel 7, Samsung S23, etc.
-    validations:
-      required: true
-  - type: input
-    id: android-version
-    attributes:
-      label: Android Version
-      description: e.g., Android 13, Android 14
-    validations:
-      required: true
-  - type: input
-    id: elrs-target
-    attributes:
-      label: ELRS Target
-      description: The name of the receiver or transmitter you are flashing (e.g., BetaFPV Nano RX)
-    validations:
-      required: true
+
   - type: textarea
     id: reproduction
     attributes:
-      label: To Reproduce
-      description: Steps to reproduce the behavior.
+      label: Steps To Reproduce
+      description: How can we reproduce this issue?
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. See error
+        1. Open the app
+        2. Connect to ELRS hotspot
+        3. Click on 'Flash'
+        4. Observe error
     validations:
       required: true
-  - type: textarea
-    id: expected-behavior
+
+  - type: input
+    id: mobile_device
     attributes:
-      label: Expected behavior
-      description: A clear and concise description of what you expected to happen.
+      label: Mobile Device Information
+      description: What kind of phone/device are you using? (e.g., Pixel 7 Pro, Galaxy S23, iPhone 15)
+      placeholder: Pixel 7 Pro
     validations:
       required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: Mobile OS Version
+      description: What version of Android or iOS are you running?
+      placeholder: Android 14
+    validations:
+      required: true
+
+  - type: input
+    id: hardware_target
+    attributes:
+      label: ELRS Hardware Target
+      description: What receiver or transmitter are you trying to flash/configure? (Vendor & Target Name)
+      placeholder: e.g., BetaFPV Nano 2.4GHz RX
+    validations:
+      required: true
+
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Firmware Version
+      description: Which version of ExpressLRS were you trying to flash?
+      placeholder: e.g., 3.3.2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Type of Issue
+      description: Which area of the app does this bug primarily affect?
+      options:
+        - Flashing / Firmware Assembly
+        - Device Configuration / WebUI
+        - UI / App Crash
+        - Discovery / Networking
+        - Other
+    validations:
+      required: true
+
   - type: textarea
     id: logs
     attributes:
-      label: Sentry Event ID or Logs
-      description: If you submitted a debug report in the app, please provide the Event ID shown in the snackbar.
-  - type: textarea
-    id: context
-    attributes:
-      label: Additional context
-      description: Add any other context about the problem here.
+      label: Additional Context / Logs
+      description: Add any other context about the problem here, including Sentry Event IDs or Error Logs.
+      placeholder: Paste any relevant logs or context here...
+    validations:
+      required: false

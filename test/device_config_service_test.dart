@@ -22,7 +22,9 @@ void main() {
         'product_name': 'Test RX',
         'settings': <String, dynamic>{'version': '1.0.0'},
         'options': <String, dynamic>{'domain': 1, 'wifi-ssid': 'mikes-wifi'},
-        'config': <String, dynamic>{'hardware': <String, dynamic>{'type': 'lite'}},
+        'config': <String, dynamic>{
+          'hardware': <String, dynamic>{'type': 'lite'},
+        },
         'modelId': 255,
         'modelMatch': false,
       };
@@ -42,17 +44,12 @@ void main() {
 
     test('saveOptions sends correct payload and headers', () async {
       final options = {'wifi-ssid': 'new-wifi'};
-      
+
       dioAdapter.onPost(
         'http://$ip/options.json',
         (server) => server.reply(200, {}),
-        data: {
-          'wifi-ssid': 'new-wifi',
-          'customised': true,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        data: {'wifi-ssid': 'new-wifi', 'customised': true},
+        headers: {'Content-Type': 'application/json'},
       );
 
       await service.saveOptions(ip, options);
@@ -60,10 +57,7 @@ void main() {
     });
 
     test('reboot sends POST request to /reboot', () async {
-      dioAdapter.onPost(
-        'http://$ip/reboot',
-        (server) => server.reply(200, {}),
-      );
+      dioAdapter.onPost('http://$ip/reboot', (server) => server.reply(200, {}));
 
       await service.reboot(ip);
       // No exception means success
@@ -92,7 +86,12 @@ void main() {
 
       final config = RuntimeConfig.fromJson(json);
       expect(config.options.domain, 1);
-      expect(config.toJson()['options']['domain'], 1);
+      final jsonOutput = config.toJson();
+      expect((jsonOutput['options'] as Map<String, dynamic>)['domain'], 1);
+      expect(
+        (jsonOutput['options'] as Map<String, dynamic>)['wifi-ssid'],
+        'wifi',
+      );
     });
   });
 }

@@ -13,6 +13,7 @@ import 'package:elrs_mobile/src/core/storage/persistence_service.dart';
 import 'package:elrs_mobile/src/core/storage/firmware_cache_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:elrs_mobile/src/core/networking/connectivity_service.dart';
+import 'package:flutter/services.dart';
 
 // 1. Define Mocks
 class MockFirmwareRepository extends Mock implements FirmwareRepository {}
@@ -64,6 +65,18 @@ void main() {
       ),
     );
     registerFallbackValue(Uint8List(0));
+
+    // Mock wakelock_plus Platform Channel so Tests don't throw MissingPluginException
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel(
+            'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle',
+          ),
+          (MethodCall methodCall) async {
+            // Encode a success response matching Pigeon's expected format (a list with a single null value)
+            return const StandardMethodCodec().encodeSuccessEnvelope([null]);
+          },
+        );
   });
 
   setUp(() {
