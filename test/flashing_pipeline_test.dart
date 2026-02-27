@@ -68,13 +68,11 @@ void main() {
 
     // Mock wakelock_plus Platform Channel so Tests don't throw MissingPluginException
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          const MethodChannel(
-            'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle',
-          ),
-          (MethodCall methodCall) async {
+        .setMockMessageHandler(
+          'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle',
+          (ByteData? message) async {
             // Encode a success response matching Pigeon's expected format (a list with a single null value)
-            return const StandardMethodCodec().encodeSuccessEnvelope([null]);
+            return const StandardMessageCodec().encodeMessage([null]);
           },
         );
   });
@@ -117,13 +115,14 @@ void main() {
     );
 
     when(
-      () => mockPatcher.patchFirmware(any(), any()),
-    ).thenAnswer((_) async => Uint8List.fromList([4, 5, 6]));
+      () => mockCache.getHardwareZipFile(any()),
+    ).thenAnswer((_) async => null);
+
+    // Stub buildFirmwarePayload to return a mock payload
     when(
-      () => mockDeviceRepo.flashFirmware(
+      () => mockDeviceRepo.buildFirmwarePayload(
         any(),
         any(),
-        onSendProgress: any(named: 'onSendProgress'),
         productName: any(named: 'productName'),
         luaName: any(named: 'luaName'),
         uid: any(named: 'uid'),
@@ -131,9 +130,26 @@ void main() {
         wifiSsid: any(named: 'wifiSsid'),
         wifiPassword: any(named: 'wifiPassword'),
         platform: any(named: 'platform'),
-        force: any(named: 'force'),
+        domain: any(named: 'domain'),
+        isTx: any(named: 'isTx'),
       ),
-    ).thenAnswer((_) async => {});
+    ).thenAnswer(
+      (_) async =>
+          (bytes: Uint8List.fromList([4, 5, 6]), filename: 'firmware.bin'),
+    );
+
+    when(
+      () => mockPatcher.patchFirmware(any(), any()),
+    ).thenAnswer((_) async => Uint8List.fromList([4, 5, 6]));
+
+    when(
+      () => mockDeviceRepo.flashFirmware(
+        any(),
+        any(),
+        force: any(named: 'force'),
+        isTx: any(named: 'isTx'),
+      ),
+    ).thenAnswer((_) async {});
 
     // Provider Override
     final container = ProviderContainer(
@@ -191,15 +207,8 @@ void main() {
       () => mockDeviceRepo.flashFirmware(
         any(),
         'firmware.bin',
-        onSendProgress: any(named: 'onSendProgress'),
-        productName: any(named: 'productName'),
-        luaName: any(named: 'luaName'),
-        uid: any(named: 'uid'),
-        hardwareLayout: any(named: 'hardwareLayout'),
-        wifiSsid: any(named: 'wifiSsid'),
-        wifiPassword: any(named: 'wifiPassword'),
-        platform: any(named: 'platform'),
         force: any(named: 'force'),
+        isTx: any(named: 'isTx'),
       ),
     ).called(1);
 

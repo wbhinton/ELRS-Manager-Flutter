@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:elrs_mobile/src/features/flashing/utils/firmware_assembler.dart';
@@ -28,6 +27,7 @@ void main() {
         platform: 'esp8285',
         wifiSsid: 'ssid',
         wifiPassword: 'pass',
+        isTx: false,
       );
 
       // Verify Total Size
@@ -37,23 +37,26 @@ void main() {
       // Verify specific content (e.g. WiFi in options)
       final optionsOffset = 3 + 128 + 16;
       final optionsBytes = result.sublist(optionsOffset, optionsOffset + 512);
-      final optionsStr = utf8.decode(optionsBytes.takeWhile((b) => b != 0).toList());
+      final optionsStr = utf8.decode(
+        optionsBytes.takeWhile((b) => b != 0).toList(),
+      );
       final options = jsonDecode(optionsStr);
-      
+
       expect(options['wifi-ssid'], equals('ssid'));
     });
 
     test('assembleEspUnified handles ESP32 platform', () {
-       final firmware = Uint8List.fromList([1, 2, 3]);
-       final result = FirmwareAssembler.assembleEspUnified(
-         firmware: firmware,
-         productName: 'PROD',
-         luaName: 'LUA',
-         uid: [0,0,0,0,0,0],
-         hardwareLayout: {},
-         platform: 'esp32',
-       );
-       expect(result.length, equals(3 + 128 + 16 + 512 + 2048));
+      final firmware = Uint8List.fromList([1, 2, 3]);
+      final result = FirmwareAssembler.assembleEspUnified(
+        firmware: firmware,
+        productName: 'PROD',
+        luaName: 'LUA',
+        uid: [0, 0, 0, 0, 0, 0],
+        hardwareLayout: {},
+        platform: 'esp32',
+        isTx: false,
+      );
+      expect(result.length, equals(3 + 128 + 16 + 512 + 2048));
     });
   });
 }

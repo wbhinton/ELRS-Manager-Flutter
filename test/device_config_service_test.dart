@@ -87,11 +87,8 @@ void main() {
       final config = RuntimeConfig.fromJson(json);
       expect(config.options.domain, 1);
       final jsonOutput = config.toJson();
-      expect((jsonOutput['options'] as Map<String, dynamic>)['domain'], 1);
-      expect(
-        (jsonOutput['options'] as Map<String, dynamic>)['wifi-ssid'],
-        'wifi',
-      );
+      expect((jsonOutput['options'] as ElrsOptions).domain, 1);
+      expect((jsonOutput['options'] as ElrsOptions).wifiSsid, 'wifi');
     });
   });
 }
