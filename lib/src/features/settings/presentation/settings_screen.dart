@@ -149,7 +149,7 @@ class SettingsScreen extends HookConsumerWidget {
             title: const Text('Discord Community'),
             subtitle: const Text('Join the ELRS Discord'),
             leading: const Icon(Icons.chat),
-            onTap: () => _launchUrl('https://discord.gg/dS6ReFY'),
+            onTap: () => _launchUrl('https://discord.gg/expresslrs'),
           ),
           ExpansionTile(
             leading: const Icon(
@@ -230,7 +230,8 @@ class SettingsScreen extends HookConsumerWidget {
                   OutlinedButton.icon(
                     icon: const Icon(Icons.chat, size: 16),
                     label: const Text('Discord'),
-                    onPressed: () => _launchUrl('https://discord.gg/dS6ReFY'),
+                    onPressed: () =>
+                        _launchUrl('https://discord.gg/expresslrs'),
                   ),
                 ],
               ),

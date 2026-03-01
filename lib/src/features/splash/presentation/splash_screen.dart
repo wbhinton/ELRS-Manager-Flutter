@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +16,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   Timer? _navigationTimer;
+  String _version = '';
 
   @override
   void initState() {
@@ -37,6 +39,17 @@ class _SplashScreenState extends State<SplashScreen>
         context.go('/dashboard');
       }
     });
+
+    _initVersion();
+  }
+
+  Future<void> _initVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _version = 'v${info.version}';
+      });
+    }
   }
 
   @override
@@ -143,12 +156,13 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
       // Version Info in the corner
+      // Version Info in the corner
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-      floatingActionButton: const Padding(
-        padding: EdgeInsets.only(top: 16.0),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(top: 16.0),
         child: Text(
-          'v1.0.0-beta',
-          style: TextStyle(color: Colors.grey, fontSize: 10),
+          _version,
+          style: const TextStyle(color: Colors.grey, fontSize: 10),
         ),
       ),
     );
