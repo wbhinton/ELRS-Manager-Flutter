@@ -43,6 +43,9 @@ jobs:
             --build-name=$VERSION \
             --build-number=$BUILD_NUMBER \
             --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          
+          mv build/app/outputs/flutter-apk/app-release.apk "ELRS-Mobile-${{ github.ref_name }}.apk"
+          mv build/app/outputs/bundle/release/app-release.aab "ELRS-Mobile-${{ github.ref_name }}.aab"
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -53,8 +56,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+            ELRS-Mobile-${{ github.ref_name }}.apk
+            ELRS-Mobile-${{ github.ref_name }}.aab
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -117,12 +120,12 @@ jobs:
           
           mkdir -p Payload
           mv build/ios/iphoneos/Runner.app Payload/
-          zip -A -q -r app-release.ipa Payload
+          zip -A -q -r "ELRS-Mobile-${{ github.ref_name }}.ipa" Payload
           
       - name: Upload iOS payload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: app-release.ipa
+          files: ELRS-Mobile-${{ github.ref_name }}.ipa
           draft: false
           prerelease: false
         env:
