@@ -1,0 +1,61 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="ELRS Mobile - A comprehensive mobile interface for managing ELRS 4.0 hardware." />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+<style is:global>
+	:root {
+		--primary: #00BFA5;
+		--background: #1E1E1E;
+		--surface: #2D2D2D;
+		--text: #FFFFFF;
+		--text-muted: #BDBDBD;
+	}
+	html {
+		font-family: system-ui, sans-serif;
+		background: var(--background);
+		color: var(--text);
+		scroll-behavior: smooth;
+	}
+	body {
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+	code {
+		font-family:
+			Menlo,
+			Monaco,
+			Lucida Console,
+			Liberation Mono,
+			DejaVu Sans Mono,
+			Bitstream Vera Sans Mono,
+			Courier New,
+			monospace;
+	}
+	main {
+		margin: auto;
+		padding: 1rem;
+		width: 800px;
+		max-width: calc(100% - 2rem);
+		line-height: 1.6;
+	}
+</style>

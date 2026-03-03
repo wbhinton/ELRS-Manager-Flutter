@@ -1,0 +1,181 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="ELRS Mobile - Control Your Hardware">
+	<main>
+		<header>
+			<h1>ELRS <span class="text-gradient">Mobile</span></h1>
+			<p class="tagline">Manage ELRS 4.0 hardware from your pocket.</p>
+			<div class="cta-group">
+				<a href="https://github.com/wbhinton/ELRS-Mobile/releases" class="button primary">Download APK</a>
+				<a href="https://github.com/wbhinton/ELRS-Mobile" class="button secondary">GitHub</a>
+			</div>
+		</header>
+
+		<section id="overview">
+			<h2>Overview</h2>
+			<p>
+				ELRS Mobile is a comprehensive open-source interface for managing ExpressLRS hardware. 
+				Configure parameters, map PWM outputs, and flash firmware updates directly through your mobile device's WiFi or local network.
+			</p>
+		</section>
+
+		<section id="features" class="grid">
+			<div class="card">
+				<h3>Device Discovery</h3>
+				<p>Seamlessly locate ELRS devices via mDNS, static AP IP (10.0.0.1), or manual override for complex networks.</p>
+			</div>
+			<div class="card">
+				<h3>Smart Flashing</h3>
+				<p>The system patches firmware with your unique credentials (SSID, Binding Phrase) automatically before flashing OTA.</p>
+			</div>
+			<div class="card">
+				<h3>Connection Resilience</h3>
+				<p>A multi-stage heartbeat monitor ensures you stay connected during transient network drops with a smart 30-second grace period.</p>
+			</div>
+			<div class="card">
+				<h3>Expert Mode</h3>
+				<p>Enable advanced auditing by saving assembled binaries locally for inspection or manual flashing via STLink/FTDI.</p>
+			</div>
+		</section>
+
+		<section id="installation">
+			<h2>Installation</h2>
+			<div class="install-steps">
+				<div class="step">
+					<span class="step-number">1</span>
+					<p>Go to <a href="https://github.com/wbhinton/ELRS-Mobile/releases">Releases</a> and download the latest <code>.apk</code>.</p>
+				</div>
+				<div class="step">
+					<span class="step-number">2</span>
+					<p>Enable <strong>Install from Unknown Sources</strong> in your Android settings.</p>
+				</div>
+				<div class="step">
+					<span class="step-number">3</span>
+					<p>Open the APK and follow the installation prompts.</p>
+				</div>
+			</div>
+		</section>
+
+		<footer>
+			<p>&copy; 2026 Weston Hinton. Distributed under the GNU GPL v3.</p>
+		</footer>
+	</main>
+</Layout>
+
+<style>
+	header {
+		text-align: center;
+		padding: 4rem 0;
+	}
+	h1 {
+		font-size: 4rem;
+		font-weight: 800;
+		margin: 0;
+	}
+	.text-gradient {
+		background-image: linear-gradient(45deg, var(--primary), #ffffff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-size: 400%;
+		background-position: 0%;
+	}
+	.tagline {
+		font-size: 1.5rem;
+		color: var(--text-muted);
+		margin-top: 1rem;
+	}
+	.cta-group {
+		margin-top: 2rem;
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+	}
+	.button {
+		padding: 0.8rem 2rem;
+		border-radius: 8px;
+		text-decoration: none;
+		font-weight: bold;
+		transition: transform 0.2s, background 0.2s;
+	}
+	.button:hover {
+		transform: translateY(-2px);
+	}
+	.button.primary {
+		background: var(--primary);
+		color: white;
+	}
+	.button.secondary {
+		border: 1px solid var(--primary);
+		color: var(--primary);
+	}
+	section {
+		padding: 3rem 0;
+	}
+	h2 {
+		font-size: 2rem;
+		border-bottom: 2px solid var(--surface);
+		padding-bottom: 0.5rem;
+		margin-bottom: 1.5rem;
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 1.5rem;
+	}
+	.card {
+		background: var(--surface);
+		padding: 1.5rem;
+		border-radius: 12px;
+		border: 1px solid transparent;
+		transition: border-color 0.2s;
+	}
+	.card:hover {
+		border-color: var(--primary);
+	}
+	.card h3 {
+		margin-top: 0;
+		color: var(--primary);
+	}
+	.install-steps {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+	.step {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		background: var(--surface);
+		padding: 1rem;
+		border-radius: 8px;
+	}
+	.step-number {
+		background: var(--primary);
+		color: white;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		font-weight: bold;
+		flex-shrink: 0;
+	}
+	footer {
+		text-align: center;
+		padding: 2rem 0;
+		margin-top: 4rem;
+		border-top: 1px solid var(--surface);
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	a {
+		color: var(--primary);
+		text-decoration: none;
+	}
+	a:hover {
+		text-decoration: underline;
+	}
+</style>
