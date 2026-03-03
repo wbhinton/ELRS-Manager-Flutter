@@ -6,9 +6,10 @@ import Layout from '../layouts/Layout.astro';
 	<main>
 		<header>
 			<h1>ELRS <span class="text-gradient">Mobile</span></h1>
-			<p class="tagline">Manage ELRS 4.0 hardware from your pocket.</p>
+			<p class="tagline">Supports ELRS Versions 3.x.x and 4.x.x</p>
 			<div class="cta-group">
 				<a href="https://github.com/wbhinton/ELRS-Mobile/releases" class="button primary">Download APK</a>
+				<a href="/ELRS-Mobile/guides/user_guide" class="button secondary">Documentation</a>
 				<a href="https://github.com/wbhinton/ELRS-Mobile" class="button secondary">GitHub</a>
 			</div>
 		</header>
@@ -19,6 +20,49 @@ import Layout from '../layouts/Layout.astro';
 				ELRS Mobile is a comprehensive open-source interface for managing ExpressLRS hardware. 
 				Configure parameters, map PWM outputs, and flash firmware updates directly through your mobile device's WiFi or local network.
 			</p>
+		</section>
+
+		<section id="demo">
+			<h2>See it in Action</h2>
+			<div class="video-container">
+				<div class="phone-mockup">
+					<iframe 
+						width="100%" 
+						height="100%" 
+						src="https://www.youtube.com/embed/6tukOoXa5aQ?autoplay=0&loop=1&rel=0&controls=1" 
+						title="ELRS Mobile Demo" 
+						frameborder="0" 
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+						allowfullscreen>
+					</iframe>
+				</div>
+			</div>
+		</section>
+
+		<section id="hardware">
+			<h2>Supported Hardware</h2>
+			<p>ELRS Mobile supports a wide range of ExpressLRS targets, focusing on Wi-Fi capable hardware.</p>
+			<div class="hardware-grid">
+				<div class="hw-card">
+					<h4>Platforms</h4>
+					<ul>
+						<li>ESP8285</li>
+						<li>ESP32</li>
+						<li>ESP32-C3</li>
+						<li>ESP32-S3</li>
+					</ul>
+				</div>
+				<div class="hw-card">
+					<h4>Tested Targets</h4>
+					<ul>
+						<li>RadioMaster XR1 / XR4 Dual Band</li>
+						<li>BETAFPV SuperP 14Ch (2.4G & 900M)</li>
+						<li>HappyModel EP / EP Dual</li>
+						<li>RadioMaster Nomad / Pocket</li>
+					</ul>
+				</div>
+			</div>
+			<p class="note">Currently unsupported: STM32 targets requiring serial STLink or Betaflight Passthrough.</p>
 		</section>
 
 		<section id="features" class="grid">
@@ -118,6 +162,62 @@ import Layout from '../layouts/Layout.astro';
 		border-bottom: 2px solid var(--surface);
 		padding-bottom: 0.5rem;
 		margin-bottom: 1.5rem;
+	}
+	.video-container {
+		display: flex;
+		justify-content: center;
+		padding: 2rem 0;
+	}
+	.phone-mockup {
+		position: relative;
+		width: 300px;
+		height: 600px;
+		background: #000;
+		border: 12px solid #2d2d2d;
+		border-radius: 36px;
+		overflow: hidden;
+		box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+	}
+	.phone-mockup::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 150px;
+		height: 25px;
+		background: #2d2d2d;
+		border-bottom-left-radius: 12px;
+		border-bottom-right-radius: 12px;
+		z-index: 10;
+	}
+	.hardware-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		margin: 2rem 0;
+	}
+	.hw-card {
+		background: var(--surface);
+		padding: 1.5rem;
+		border-radius: 12px;
+	}
+	.hw-card h4 {
+		margin-top: 0;
+		color: var(--primary);
+		border-bottom: 1px solid var(--background);
+		padding-bottom: 0.5rem;
+	}
+	.hw-card ul {
+		margin: 0;
+		padding-left: 1.2rem;
+		color: var(--text-muted);
+	}
+	.note {
+		font-size: 0.9rem;
+		font-style: italic;
+		color: var(--text-muted);
+		text-align: center;
 	}
 	.grid {
 		display: grid;
