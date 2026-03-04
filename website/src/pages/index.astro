@@ -6,19 +6,112 @@ import Layout from '../layouts/Layout.astro';
 	<main>
 		<header>
 			<h1>ELRS <span class="text-gradient">Mobile</span></h1>
-			<p class="tagline">Manage ELRS 4.0 hardware from your pocket.</p>
+			<p class="tagline">Supports ELRS Versions 3.x.x and 4.x.x</p>
 			<div class="cta-group">
 				<a href="https://github.com/wbhinton/ELRS-Mobile/releases" class="button primary">Download APK</a>
+				<a href="/user_guide" class="button secondary">Documentation</a>
 				<a href="https://github.com/wbhinton/ELRS-Mobile" class="button secondary">GitHub</a>
 			</div>
 		</header>
 
-		<section id="overview">
-			<h2>Overview</h2>
-			<p>
-				ELRS Mobile is a comprehensive open-source interface for managing ExpressLRS hardware. 
-				Configure parameters, map PWM outputs, and flash firmware updates directly through your mobile device's WiFi or local network.
-			</p>
+		<section id="why-elrs-mobile">
+			<h2>Why ELRS Mobile?</h2>
+			<div class="feature-highlight">
+				<div class="highlight-text">
+					<h3>No Cell Service? No Problem.</h3>
+					<p>
+						When you're out in the field and encounter a firmware mismatch (e.g., TX on 4.0, RX on 3.x), the web flasher fails without an internet connection. 
+					</p>
+					<p>
+						ELRS Mobile solves this with <strong>Offline Caching</strong>. Once you've cached a firmware version, the app can compile and flash every supported target completely offline.
+					</p>
+				</div>
+				<div class="feature-grid">
+					<div class="feature-item">
+						<span class="feature-icon">⚡</span>
+						<h4>Blazing Fast</h4>
+						<p>Flash from local cache instead of waiting for web downloads.</p>
+					</div>
+					<div class="feature-item">
+						<span class="feature-icon">📡</span>
+						<h4>Reliable Anywhere</h4>
+						<p>Eliminate edge cases with zero cell coverage or wifi access.</p>
+					</div>
+					<div class="feature-item">
+						<span class="feature-icon">🛠️</span>
+						<h4>Unified Flow</h4>
+						<p>One interface for all your ExpressLRS hardware needs.</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="demo">
+			<h2>See it in Action</h2>
+			<div class="video-container">
+				<div class="phone-mockup">
+					<iframe 
+						width="100%" 
+						height="100%" 
+						src="https://www.youtube.com/embed/6tukOoXa5aQ?autoplay=0&loop=1&rel=0&controls=1" 
+						title="ELRS Mobile Demo" 
+						frameborder="0" 
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+						allowfullscreen>
+					</iframe>
+				</div>
+			</div>
+		</section>
+
+		<section id="app-stores">
+			<h2>Official App Stores</h2>
+			<p>We are working hard to bring ELRS Mobile to your favorite app stores. Approval and publishing is currently in progress.</p>
+			<div class="store-grid">
+				<div class="store-card disabled">
+					<div class="store-icon">
+						<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.3414L20.355 13.706C21.215 13.209 21.215 11.961 20.355 11.464L17.523 9.82944L14.771 12.5834L17.523 15.3414ZM13.883 13.4724L16.635 16.2234L5.656 22.564C5.071 22.902 4.331 22.795 3.865 22.28L13.883 13.4724ZM3.535 20.916L12.997 12.5844L3.535 4.25144C3.195 4.41444 3 4.76744 3 5.16644V20.0014C3 20.4 3.195 20.7534 3.535 20.916ZM13.883 11.6964L3.865 2.88844C4.331 2.37344 5.071 2.26644 5.656 2.60444L16.635 8.94544L13.883 11.6964Z"/></svg>
+					</div>
+					<div class="store-info">
+						<h3>Google Play</h3>
+						<span class="status">In Review</span>
+					</div>
+				</div>
+				<div class="store-card disabled">
+					<div class="store-icon">
+						<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.96.95-2.06 1.92-3.4 1.92s-1.8-.84-3.37-.84-2.1.84-3.41.84c-1.28 0-2.43-1.02-3.41-2.45C1.45 16.71.36 12.44 2.45 9.15c1-1.5 2.51-2.48 4.14-2.48 1.4 0 2.4 1.05 3.4 1.05s2.2-.9 3.55-.9c1.1 0 2.45.6 3.45 1.7-2.7 1.6-2.2 5.3 0 6.6-.7 1.8-1.7 3.6-2.94 5.16zM13 2c0 1.5-1.26 3.1-2.9 3.1-.15-1.9 1.4-3.5 2.9-3.5z"/></svg>
+					</div>
+					<div class="store-info">
+						<h3>App Store</h3>
+						<span class="status">Coming Soon</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="hardware">
+			<h2>Supported Hardware</h2>
+			<p>ELRS Mobile supports a wide range of ExpressLRS targets, focusing on Wi-Fi capable hardware.</p>
+			<div class="hardware-grid">
+				<div class="hw-card">
+					<h4>Platforms</h4>
+					<ul>
+						<li>ESP8285</li>
+						<li>ESP32</li>
+						<li>ESP32-C3</li>
+						<li>ESP32-S3</li>
+					</ul>
+				</div>
+				<div class="hw-card">
+					<h4>Tested Targets</h4>
+					<ul>
+						<li>RadioMaster XR1 / XR4 Dual Band</li>
+						<li>BETAFPV SuperP 14Ch (2.4G & 900M)</li>
+						<li>HappyModel EP / EP Dual</li>
+						<li>RadioMaster Nomad / Pocket</li>
+					</ul>
+				</div>
+			</div>
+			<p class="note">Currently unsupported: STM32 targets requiring serial STLink or Betaflight Passthrough.</p>
 		</section>
 
 		<section id="features" class="grid">
@@ -81,6 +174,43 @@ import Layout from '../layouts/Layout.astro';
 		background-size: 400%;
 		background-position: 0%;
 	}
+	p {
+		font-size: 1.1rem;
+		line-height: 1.6;
+		margin-bottom: 2rem;
+	}
+	.feature-highlight {
+		background: rgba(0, 191, 165, 0.05);
+		border: 1px solid rgba(0, 191, 165, 0.1);
+		border-radius: 24px;
+		padding: 2.5rem;
+		margin-bottom: 3rem;
+	}
+	.highlight-text h3 {
+		color: var(--primary);
+		font-size: 1.8rem;
+		margin-bottom: 1rem;
+	}
+	.feature-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 2rem;
+		margin-top: 2.5rem;
+	}
+	.feature-item h4 {
+		color: var(--primary);
+		margin: 0.5rem 0;
+		font-size: 1.2rem;
+	}
+	.feature-item p {
+		font-size: 0.95rem;
+		margin-bottom: 0;
+		opacity: 0.8;
+	}
+	.feature-icon {
+		font-size: 2rem;
+		display: block;
+	}
 	.tagline {
 		font-size: 1.5rem;
 		color: var(--text-muted);
@@ -118,6 +248,98 @@ import Layout from '../layouts/Layout.astro';
 		border-bottom: 2px solid var(--surface);
 		padding-bottom: 0.5rem;
 		margin-bottom: 1.5rem;
+	}
+	.video-container {
+		display: flex;
+		justify-content: center;
+		padding: 2rem 0;
+	}
+	.phone-mockup {
+		position: relative;
+		width: 300px;
+		height: 600px;
+		background: #000;
+		border: 12px solid #2d2d2d;
+		border-radius: 36px;
+		overflow: hidden;
+		box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+	}
+	.phone-mockup::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 150px;
+		height: 25px;
+		background: #2d2d2d;
+		border-bottom-left-radius: 12px;
+		border-bottom-right-radius: 12px;
+		z-index: 10;
+	}
+	.store-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		margin-top: 2rem;
+	}
+	.store-card {
+		display: flex;
+		align-items: center;
+		padding: 1.5rem;
+		background: var(--surface);
+		border-radius: 16px;
+		border: 1px solid rgba(0, 191, 165, 0.2);
+		gap: 1.2rem;
+		transition: transform 0.2s ease;
+	}
+	.store-card.disabled {
+		opacity: 0.8;
+		filter: grayscale(0.5);
+	}
+	.store-icon svg {
+		width: 40px;
+		height: 40px;
+		color: var(--primary);
+	}
+	.store-info h3 {
+		margin: 0;
+		font-size: 1.2rem;
+	}
+	.store-info .status {
+		font-size: 0.9rem;
+		color: var(--primary);
+		opacity: 0.8;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.hardware-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		margin: 2rem 0;
+	}
+	.hw-card {
+		background: var(--surface);
+		padding: 1.5rem;
+		border-radius: 12px;
+	}
+	.hw-card h4 {
+		margin-top: 0;
+		color: var(--primary);
+		border-bottom: 1px solid var(--background);
+		padding-bottom: 0.5rem;
+	}
+	.hw-card ul {
+		margin: 0;
+		padding-left: 1.2rem;
+		color: var(--text-muted);
+	}
+	.note {
+		font-size: 0.9rem;
+		font-style: italic;
+		color: var(--text-muted);
+		text-align: center;
 	}
 	.grid {
 		display: grid;
