@@ -1,0 +1,137 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Data Deletion - ELRS Mobile">
+	<main>
+		<header>
+			<h1>Data <span class="text-gradient">Deletion</span></h1>
+			<p class="tagline">Providing transparency on how your data is managed.</p>
+		</header>
+
+		<section class="content">
+			<p>At ExpressLRS Mobile, we value your privacy and aim to give you full control over your data. Because our application is designed to be "Privacy-First," almost all data is stored locally on your device.</p>
+
+			<h2>1. Deleting On-Device Data</h2>
+			<p>All personal configuration data, including your <strong>WiFi Credentials</strong>, <strong>Binding Phrases</strong>, and <strong>Regulatory Settings</strong>, is stored exclusively in your device's private internal storage.</p>
+			<p>To permanently delete this data, you can:</p>
+			<ul>
+				<li><strong>Uninstall the App</strong>: Both Android and iOS will automatically delete all locally stored data associated with ELRS Mobile when the app is uninstalled.</li>
+				<li><strong>Clear App Data (Android)</strong>: You can go to <em>Settings > Apps > ELRS Mobile > Storage</em> and select "Clear Data" to reset the app to its factory state.</li>
+			</ul>
+
+			<h2>2. Anonymous Crash Reports</h2>
+			<p>If you have enabled crash reporting, anonymous technical data (such as stack traces and device models) may have been sent to our <strong>Sentry</strong> instance for debugging purposes.</p>
+			<p>These reports do not contain personal identifiers, Binding Phrases, or WiFi passwords. Due to their anonymous nature, they cannot be manually deleted by individual users. However, these reports are subject to Sentry's automated data retention and deletion policies.</p>
+
+			<h2>3. Contact for Data Inquiries</h2>
+			<p>While the app does not maintain user accounts or cloud-based personal profiles, we are happy to answer any questions you may have regarding data management.</p>
+			<p>Please contact the maintainers via the <a href="https://discord.gg/expresslrs">official ExpressLRS Discord</a> or our <a href="https://github.com/ExpressLRS/ExpressLRS">GitHub Repository</a>.</p>
+		</section>
+
+		<div class="back-link">
+			<a href="/" class="button secondary">← Back to Home</a>
+		</div>
+
+		<footer>
+			<p>&copy; 2026 Weston Hinton. Distributed under the GNU GPL v3.</p>
+			<div class="footer-links">
+				<a href="/privacy">Privacy Policy</a> | <a href="/data-deletion">Data Deletion</a>
+			</div>
+		</footer>
+	</main>
+</Layout>
+
+<style>
+	header {
+		text-align: center;
+		padding: 4rem 0;
+	}
+	h1 {
+		font-size: 3rem;
+		font-weight: 800;
+		margin: 0;
+	}
+	.text-gradient {
+		background-image: linear-gradient(45deg, var(--primary), #ffffff);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-size: 400%;
+		background-position: 0%;
+	}
+	.tagline {
+		font-size: 1.2rem;
+		color: var(--text-muted);
+		margin-top: 1rem;
+	}
+	.content {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 2rem 0;
+	}
+	h2 {
+		font-size: 2rem;
+		color: var(--primary);
+		margin-top: 2.5rem;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid var(--surface);
+		padding-bottom: 0.5rem;
+	}
+	p {
+		font-size: 1.1rem;
+		line-height: 1.6;
+		margin-bottom: 1.5rem;
+		color: var(--text-muted);
+	}
+	ul {
+		margin-bottom: 1.5rem;
+		padding-left: 1.5rem;
+		color: var(--text-muted);
+	}
+	li {
+		margin-bottom: 0.5rem;
+	}
+	strong {
+		color: var(--text);
+	}
+	.back-link {
+		text-align: center;
+		margin-top: 3rem;
+	}
+	.button {
+		padding: 0.8rem 2rem;
+		border-radius: 8px;
+		text-decoration: none;
+		font-weight: bold;
+		transition: transform 0.2s, background 0.2s;
+		display: inline-block;
+	}
+	.button:hover {
+		transform: translateY(-2px);
+	}
+	.button.secondary {
+		border: 1px solid var(--primary);
+		color: var(--primary);
+	}
+	footer {
+		text-align: center;
+		padding: 2rem 0;
+		margin-top: 4rem;
+		border-top: 1px solid var(--surface);
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+	footer p {
+		margin-bottom: 0.5rem;
+	}
+	.footer-links a {
+		margin: 0 0.5rem;
+	}
+	a {
+		color: var(--primary);
+		text-decoration: none;
+	}
+	a:hover {
+		text-decoration: underline;
+	}
+</style>
