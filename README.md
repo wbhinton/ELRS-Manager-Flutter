@@ -2,6 +2,7 @@
   <img src="icons/elrs_mobile.png" alt="ExpressLRS Mobile Logo" width="150"/>
 </p>
 
+[![Google Play](https://img.shields.io/badge/Google%20Play-Open%20Testing-blue.svg?style=flat-square&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=io.datarx.elrsmobile)
 [![GitHub Release](https://img.shields.io/github/v/release/wbhinton/ELRS-Mobile?style=flat-square&color=orange)](https://github.com/wbhinton/ELRS-Mobile/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/wbhinton/ELRS-Mobile/release.yml?branch=main&style=flat-square)](https://github.com/wbhinton/ELRS-Mobile/actions)
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat-square&logo=Flutter&logoColor=white)](https://flutter.dev)
@@ -17,7 +18,7 @@ Whether you are configuring a new receiver on the bench or flashing an emergency
 
 🚀 **Quick Start**
 
-- **Download:** Grab the latest `.apk` from the [Releases Page](https://github.com/wbhinton/ELRS-Mobile/releases).
+- **Download:** Get it on [Google Play (Open Testing)](https://play.google.com/store/apps/details?id=io.datarx.elrsmobile) or grab the latest `.apk` from the [Releases Page](https://github.com/wbhinton/ELRS-Mobile/releases).
 - **Install:** Open the file on your Android device. You may need to "Allow from this source" in your browser settings.
 - **Connect:** Power on your ELRS hardware, join its Wi-Fi hotspot, and open the app. It will auto-detect your device via mDNS.
 
