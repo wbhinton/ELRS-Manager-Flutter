@@ -1,5 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="Privacy Policy - ELRS Mobile">
@@ -10,48 +10,119 @@ import Layout from '../layouts/Layout.astro';
 		</header>
 
 		<section class="content">
-			<p>The ExpressLRS Mobile application ("the App") is designed with a "Privacy First" philosophy. We believe that your hardware configuration, credentials, and location are private data that should remain under your control.</p>
+			<p>
+				The ExpressLRS Mobile application ("the App") is designed with a
+				"Privacy First" philosophy. We believe that your hardware
+				configuration, credentials, and location are private data that
+				should remain under your control.
+			</p>
 
 			<h2>1. Information Collection and Use</h2>
-			
+
 			<h3>Local Storage</h3>
-			<p>The App stores the following data locally on your device using encrypted or system-protected storage (such as SharedPreferences and Application Documents):</p>
+			<p>
+				The App stores the following data locally on your device using
+				encrypted or system-protected storage (such as SharedPreferences
+				and Application Documents):
+			</p>
 			<ul>
-				<li><strong>WiFi Credentials</strong>: Home and Device WiFi SSIDs and Passwords used for firmware flashing.</li>
-				<li><strong>Binding Phrases</strong>: Used to coordinate your ExpressLRS hardware.</li>
-				<li><strong>Regulatory Settings</strong>: Your preferred regulatory domain (e.g., FCC, LBT).</li>
-				<li><strong>Firmware Cache</strong>: Downloaded firmware files for flashing.</li>
+				<li>
+					<strong>WiFi Credentials</strong>: Home and Device WiFi
+					SSIDs and Passwords used for firmware flashing.
+				</li>
+				<li>
+					<strong>Binding Phrases</strong>: Used to coordinate your
+					ExpressLRS hardware.
+				</li>
+				<li>
+					<strong>Regulatory Settings</strong>: Your preferred
+					regulatory domain (e.g., FCC, LBT).
+				</li>
+				<li>
+					<strong>Firmware Cache</strong>: Downloaded firmware files
+					for flashing.
+				</li>
 			</ul>
-			<p><strong>This data is stored only on your device and is never transmitted to our servers or any third parties by the App.</strong></p>
+			<p>
+				<strong
+					>This data is stored only on your device and is never
+					transmitted to our servers or any third parties by the App.</strong>
+			</p>
 
 			<h3>Crash Reporting (Sentry)</h3>
-			<p>To help us improve the App and resolve technical issues, we use <strong>Sentry</strong>, a third-party crash reporting service. When the App crashes or encounters a critical error, it may automatically send an anonymous report containing:</p>
+			<p>
+				To help us improve the App and resolve technical issues, we use <strong
+					>Sentry</strong
+				>, a third-party crash reporting service. When the App crashes
+				or encounters a critical error, it may automatically send an
+				anonymous report containing:
+			</p>
 			<ul>
 				<li>Device hardware model and OS version.</li>
 				<li>App version.</li>
 				<li>Stack traces and error messages.</li>
 			</ul>
-			<p>These reports do <strong>not</strong> include your Binding Phrase, WiFi passwords, or personal identity. We use this information solely for debugging and performance optimization.</p>
+			<p>
+				These reports do <strong>not</strong> include your Binding Phrase,
+				WiFi passwords, or personal identity. We use this information solely
+				for debugging and performance optimization.
+			</p>
 
 			<h3>Firmware Downloads</h3>
-			<p>When you request a firmware update, the App communicates with <strong>GitHub API</strong> and <strong>ExpressLRS servers</strong> to download the necessary files. This process involves standard HTTP requests which may log your IP address on those external servers, subject to their respective privacy policies.</p>
+			<p>
+				When you request a firmware update, the App communicates with <strong
+					>GitHub API</strong
+				> and <strong>ExpressLRS servers</strong> to download the necessary
+				files. This process involves standard HTTP requests which may log
+				your IP address on those external servers, subject to their respective
+				privacy policies.
+			</p>
 
 			<h2>2. Device Permissions</h2>
 			<p>The App requires certain permissions to function correctly:</p>
 			<ul>
-				<li><strong>Network Access</strong>: Required to download firmware and communicate with ELRS devices over WiFi.</li>
-				<li><strong>Location (Fine/Coarse)</strong>: Required on Android to perform WiFi scanning and identify nearby ELRS Access Points. The App does <strong>not</strong> track your movement or store your coordinates.</li>
-				<li><strong>Storage/Files</strong>: Required to save and manage firmware files in the App's local cache.</li>
+				<li>
+					<strong>Network Access</strong>: Required to download
+					firmware and communicate with ELRS devices over WiFi.
+				</li>
+				<li>
+					<strong>Location (Fine/Coarse)</strong>: Required on Android
+					to perform WiFi scanning and identify nearby ELRS Access
+					Points. The App does <strong>not</strong> track your movement
+					or store your coordinates.
+				</li>
+				<li>
+					<strong>Storage/Files</strong>: Required to save and manage
+					firmware files in the App's local cache.
+				</li>
 			</ul>
 
 			<h2>3. Data Security</h2>
-			<p>We implement standard security measures to protect your data locally. However, please be aware that no method of electronic storage is 100% secure. We recommend using device-level security (passcodes, biometrics) to protect the data stored within the App.</p>
+			<p>
+				We implement standard security measures to protect your data
+				locally. However, please be aware that no method of electronic
+				storage is 100% secure. We recommend using device-level security
+				(passcodes, biometrics) to protect the data stored within the
+				App.
+			</p>
 
 			<h2>4. Changes to This Policy</h2>
-			<p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
+			<p>
+				We may update our Privacy Policy from time to time. We will
+				notify you of any changes by posting the new Privacy Policy on
+				this page and updating the "Last Updated" date.
+			</p>
 
 			<h2>5. Contact Us</h2>
-			<p>If you have any questions about this Privacy Policy, please contact the maintainers via the <a href="https://discord.gg/expresslrs">official ExpressLRS Discord</a> or our <a href="https://github.com/ExpressLRS/ExpressLRS">GitHub Repository</a>.</p>
+			<p>
+				If you have any questions about this Privacy Policy, please
+				contact the maintainers via the <a
+					href="https://discord.gg/expresslrs"
+					>official ExpressLRS Discord</a
+				> or our <a href="https://github.com/ExpressLRS/ExpressLRS"
+					>GitHub Repository</a
+				>.
+			</p>
 		</section>
 
 		<div class="back-link">
@@ -60,7 +131,7 @@ import Layout from '../layouts/Layout.astro';
 
 		<footer>
 			<p>&copy; 2026 Weston Hinton. Distributed under the GNU GPL v3.</p>
-			<p><a href="/privacy">Privacy Policy</a> | <a href="/data-deletion">Data Deletion</a></p>
+			<p><a href="/privacy">Privacy Policy</a></p>
 		</footer>
 	</main>
 </Layout>
